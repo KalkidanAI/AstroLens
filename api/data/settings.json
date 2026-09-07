@@ -1,0 +1,23 @@
+{
+    "location": {
+        "name": "Addis Ababa, Ethiopia",
+        "latitude": 9.03,
+        "longitude": 38.74,
+        "timezone": "Africa/Addis_Ababa",
+        "utc_offset": 3
+    },
+    "telescope": {
+        "input_source": "demo",
+        "resolution": "1280x720"
+    },
+    "ai": {
+        "confidence_threshold": 0.5,
+        "model_path": "api/ml/model/best.pt",
+        "auto_detect": false
+    },
+    "display": {
+        "theme": "dark",
+        "show_grid": true,
+        "show_labels": true
+    }
+}

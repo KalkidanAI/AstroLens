@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - AstroLens</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            accent: '#0070f3',
+                            sky: '#38bdf8',
+                            dark: '#000000',
+                            surface: '#0a0a0a',
+                            card: '#111111',
+                            border: '#222222'
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    </style>
+</head>
+<body class="min-h-screen bg-black text-gray-100 font-sans antialiased">
+    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+
+    <main class="grid min-h-screen lg:grid-cols-[1fr_0.95fr]">
+        <!-- LEFT HERO COLUMN -->
+        <section class="hidden border-r border-brand-border bg-cover bg-center lg:block relative overflow-hidden" 
+                 style="background-image: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(10,10,10,0.95) 100%), url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1600&q=80');">
+            <div class="flex h-full flex-col justify-between p-12 text-white relative z-10">
+                <a href="/" class="flex items-center gap-3">
+                    <div class="h-9 w-9 rounded-full bg-gradient-to-r from-blue-600 to-sky-400 p-0.5 shadow-lg shadow-sky-500/20 flex items-center justify-center">
+                        <div class="h-full w-full rounded-full bg-black flex items-center justify-center">
+                            <i class="fas fa-telescope text-sky-400 text-xs"></i>
+                        </div>
+                    </div>
+                    <span class="text-xl font-extrabold tracking-tight">ASTRO<span class="text-sky-400">LENS</span></span>
+                </a>
+
+                <div class="max-w-lg">
+                    <div class="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-sky-500/10 px-3.5 py-1 text-xs font-semibold text-sky-300 mb-4">
+                        <span class="h-2 w-2 rounded-full bg-sky-400 animate-pulse"></span>
+                        <i class="fas fa-graduation-cap text-xs"></i> Observer Workspace
+                    </div>
+                    <h1 class="text-5xl font-extrabold leading-tight tracking-tight text-white">
+                        Discover the universe with AI computer vision.
+                    </h1>
+                    <p class="mt-4 text-sm leading-relaxed text-gray-400">
+                        Join students and observers exploring real-time celestial AI object detections, interactive planetary science, and Stellarium ephemeris sync.
+                    </p>
+                    
+                    <div class="mt-8 flex items-center gap-3 rounded-xl border border-brand-border bg-brand-card/90 p-4 backdrop-blur-md">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                            <i class="fas fa-bolt text-base"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-white">Instant Account & Permanent Session</p>
+                            <p class="text-xs text-gray-400">Sign up once and stay connected to observation feeds</p>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-xs text-gray-500">AstroLens Intelligent Astronomical Platform</p>
+            </div>
+        </section>
+
+        <!-- RIGHT FORM COLUMN -->
+        <section class="relative flex items-center justify-center px-6 py-12 bg-black">
+            <div class="w-full max-w-md">
+                <div class="mb-8 text-center">
+                    <a href="/" class="inline-flex items-center gap-3 mb-6">
+                        <div class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-600 to-sky-400 p-0.5 shadow-lg shadow-sky-500/20 flex items-center justify-center">
+                            <div class="h-full w-full rounded-full bg-black flex items-center justify-center">
+                                <i class="fas fa-telescope text-sky-400 text-sm"></i>
+                            </div>
+                        </div>
+                        <span class="text-2xl font-extrabold tracking-tight">ASTRO<span class="text-sky-400">LENS</span></span>
+                    </a>
+                    <h1 class="text-3xl font-extrabold text-white">Create Account</h1>
+                    <p class="mt-2 text-sm text-gray-400">Register your account to access live observation sessions.</p>
+                </div>
+
+                <form id="signup-form" class="space-y-4 rounded-xl border border-brand-border bg-brand-card p-6 shadow-xl">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-2">
+                            <i class="fas fa-user mr-1.5 text-sky-400"></i> Username
+                        </label>
+                        <input type="text" id="username" required placeholder="Choose a username (min. 3 chars)" 
+                               class="w-full rounded-lg border border-brand-border bg-black px-4 py-3 text-sm text-white outline-none transition-all focus:border-sky-400 focus:ring-1 focus:ring-sky-400">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-2">
+                            <i class="fas fa-key mr-1.5 text-sky-400"></i> Password
+                        </label>
+                        <input type="password" id="password" required placeholder="Create a password" 
+                               class="w-full rounded-lg border border-brand-border bg-black px-4 py-3 text-sm text-white outline-none transition-all focus:border-sky-400 focus:ring-1 focus:ring-sky-400">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-2">
+                            <i class="fas fa-check-double mr-1.5 text-sky-400"></i> Confirm Password
+                        </label>
+                        <input type="password" id="confirm_password" required placeholder="Re-enter password to confirm" 
+                               class="w-full rounded-lg border border-brand-border bg-black px-4 py-3 text-sm text-white outline-none transition-all focus:border-sky-400 focus:ring-1 focus:ring-sky-400">
+                    </div>
+
+                    <button type="submit" id="signup-btn" 
+                            class="w-full rounded-lg bg-white px-4 py-3.5 text-sm font-bold text-black transition-all hover:bg-gray-200 active:scale-[0.99] mt-2">
+                        <i class="fas fa-user-plus mr-2"></i> Create Account & Start
+                    </button>
+                </form>
+
+                <p class="mt-6 text-center text-sm text-gray-400">
+                    Already registered? 
+                    <a href="/login" class="font-semibold text-sky-400 hover:underline">Sign in here</a>
+                </p>
+
+                <p class="mt-4 text-center">
+                    <a href="/" class="text-xs font-semibold text-gray-500 hover:text-gray-300 transition-colors">
+                        <i class="fas fa-arrow-left mr-1"></i> Back to home
+                    </a>
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('signup-btn');
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+
+            if (username.length < 3) {
+                AstroLens.showToast('Username must be at least 3 characters', 'warning');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                AstroLens.showToast('Passwords do not match. Please re-enter.', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Creating Account...';
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, role: 'observer' })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    AstroLens.saveSession(data.token, data.user);
+                    AstroLens.showToast(`Account created! Logged in as ${data.user.username.toUpperCase()}`, 'success');
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 500);
+                } else {
+                    AstroLens.showToast(data.error || 'Registration failed', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-user-plus mr-2"></i> Create Account & Start';
+                }
+            } catch(err) {
+                console.error(err);
+                AstroLens.showToast('Sign up request failed', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-user-plus mr-2"></i> Create Account & Start';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "usr_admin",
+    "username": "admin",
+    "password_hash": "d35fda7e4e4d3001d6a9e4f52bcac913bc05bb4c6f76c365135ae295ef5ed6e9",
+    "role": "admin",
+    "created_at": "2026-09-04T00:00:00"
+  },
+  {
+    "id": "usr_observer",
+    "username": "observer",
+    "password_hash": "8cce1da39376324d2977449a03a7fa3a3b23b978acab97979996d00b98642788",
+    "role": "observer",
+    "created_at": "2026-09-04T00:00:00"
+  }
+]

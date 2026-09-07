@@ -1,0 +1,62 @@
+[
+    {
+        "id": "obs_001",
+        "object": "Jupiter",
+        "type": "planet",
+        "confidence": 0.94,
+        "verified": true,
+        "timestamp": "2026-09-04T03:12:00",
+        "source": "AstroLens Telemetry",
+        "altitude": 48.2,
+        "azimuth": 72.4,
+        "notes": "Clear equatorial band visibility"
+    },
+    {
+        "id": "obs_002",
+        "object": "Moon",
+        "type": "moon",
+        "confidence": 0.98,
+        "verified": true,
+        "timestamp": "2026-09-04T02:45:00",
+        "source": "AstroLens Telemetry",
+        "altitude": 62.1,
+        "azimuth": 195.3,
+        "notes": "Waxing gibbous, 85% illumination"
+    },
+    {
+        "id": "obs_003",
+        "object": "Saturn",
+        "type": "planet",
+        "confidence": 0.87,
+        "verified": true,
+        "timestamp": "2026-09-03T23:30:00",
+        "source": "AstroLens Telemetry",
+        "altitude": 35.7,
+        "azimuth": 210.8,
+        "notes": "Rings & Cassini Division detected"
+    },
+    {
+        "id": "obs_004",
+        "object": "Orion Nebula",
+        "type": "nebula",
+        "confidence": 0.76,
+        "verified": true,
+        "timestamp": "2026-09-03T04:15:00",
+        "source": "AstroLens Telemetry",
+        "altitude": 28.4,
+        "azimuth": 145.2,
+        "notes": "Trapezium cluster & emission nebula"
+    },
+    {
+        "id": "obs_005",
+        "object": "Mars",
+        "type": "planet",
+        "confidence": 0.91,
+        "verified": true,
+        "timestamp": "2026-09-02T22:10:00",
+        "source": "AstroLens Telemetry",
+        "altitude": 15.3,
+        "azimuth": 88.7,
+        "notes": "Polar ice cap resolved"
+    }
+]

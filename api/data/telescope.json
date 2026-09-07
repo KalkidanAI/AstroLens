@@ -1,0 +1,9 @@
+{
+    "type": "mock",
+    "model": "Mock Telescope",
+    "connected": false,
+    "supported_telescopes": [
+        {"id": "mock", "name": "Mock Telescope", "type": "mock"},
+        {"id": "celestron", "name": "Celestron NexStar", "type": "celestron", "status": "not_implemented"}
+    ]
+}

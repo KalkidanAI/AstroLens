@@ -1,0 +1,12 @@
+path: C:\Users\kalwo\Desktop\AstroLens\api\ml\dataset
+train: images/train
+val: images/val
+
+names:
+  0: moon
+  1: jupiter
+  2: saturn
+  3: mars
+  4: star
+  5: nebula
+  6: galaxy

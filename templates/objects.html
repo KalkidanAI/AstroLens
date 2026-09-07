@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Celestial Objects | AstroLens Catalog{% endblock %}
+
+{% block content %}
+<!-- PAGE HEADER -->
+<div class="flex flex-col md:flex-row md:items-center justify-between pb-6 mb-6 border-b border-neutral-800/80 gap-4">
+    <div>
+        <h1 class="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+            <span>Celestial Catalog</span>
+            <span class="text-xs px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-mono font-semibold">OBJECTS</span>
+        </h1>
+        <p class="text-xs text-neutral-400 mt-1">Explore observable planets, stars, deep sky nebulae, and star clusters</p>
+    </div>
+</div>
+
+<div class="space-y-6">
+    <!-- SEARCH & FILTER BAR -->
+    <div class="p-4 bg-neutral-950 rounded-2xl border border-neutral-800/80 flex flex-col md:flex-row gap-4 justify-between items-center">
+        <div class="relative w-full md:w-80">
+            <i class="fas fa-magnifying-glass absolute left-3.5 top-3 text-xs text-neutral-500"></i>
+            <input type="text" id="object-search" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-sky-500" placeholder="Search objects (e.g., Jupiter, Orion, Andromeda)...">
+        </div>
+
+        <div class="flex flex-wrap gap-1.5 w-full md:w-auto" id="category-filters">
+            <button class="filter-btn active px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 text-black transition-colors" data-category="all">All Objects</button>
+            <button class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-700 transition-colors" data-category="Planets">Planets</button>
+            <button class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-700 transition-colors" data-category="Stars">Stars</button>
+            <button class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-700 transition-colors" data-category="Moon">Moon</button>
+            <button class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-700 transition-colors" data-category="Galaxies">Galaxies</button>
+            <button class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-700 transition-colors" data-category="Nebulae">Nebulae</button>
+            <button class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-700 transition-colors" data-category="Star Clusters">Clusters</button>
+        </div>
+    </div>
+
+    <!-- OBJECTS GRID CONTAINER -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="objects-grid">
+        <div class="col-span-full p-12 text-center text-neutral-500 space-y-3 bg-neutral-950 rounded-2xl border border-neutral-800/80">
+            <i class="fas fa-spinner fa-spin text-2xl text-sky-400"></i>
+            <p class="text-xs font-medium text-neutral-400">Loading catalog objects...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/objects.js"></script>
+{% endblock %}

@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Observatory | AstroLens — AI Workspace{% endblock %}
+
+{% block content %}
+<!-- PAGE HEADER -->
+<div class="flex flex-col md:flex-row md:items-center justify-between pb-6 mb-6 border-b border-neutral-800/80 gap-4">
+    <div>
+        <h1 class="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+            <span>Observatory</span>
+            <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono font-semibold">FEED ACTIVE</span>
+        </h1>
+        <p class="text-xs text-neutral-400 mt-1">Live telescope camera feed, YOLOv8 computer vision engine, and mount slew controls</p>
+    </div>
+    <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-1.5 text-xs">
+            <span class="text-neutral-400 font-semibold">Input:</span>
+            <select id="input-source" class="bg-transparent text-white font-bold focus:outline-none cursor-pointer">
+                <option value="demo">Demo Feed</option>
+                <option value="webcam" selected>PC Camera / Webcam</option>
+                <option value="image">Image File</option>
+                <option value="video">Video File</option>
+            </select>
+        </div>
+        <button id="detect-btn" class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-black font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-sky-500/20 transition-all">
+            <i class="fas fa-microchip"></i> Run Detection
+        </button>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- LEFT & CENTER: CAMERA FEED AND MOUNT CONTROLS -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- VIDEO FEED CONTAINER -->
+        <div class="relative bg-black rounded-2xl border border-neutral-800/80 overflow-hidden shadow-2xl">
+            <!-- HUD Feed Overlays -->
+            <div class="absolute top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
+                <span class="bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-lg border border-neutral-800 text-xs font-mono font-semibold text-emerald-400 flex items-center gap-2 pointer-events-auto" id="input-status">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> PC Camera Active
+                </span>
+                <div class="flex gap-2 pointer-events-auto">
+                    <span class="bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg border border-neutral-800 text-[11px] font-mono text-neutral-400" id="fps-counter">30 FPS</span>
+                    <span class="bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg border border-neutral-800 text-[11px] font-mono text-neutral-400" id="resolution-label">1280×720</span>
+                </div>
+            </div>
+
+            <!-- Video & Canvas Element -->
+            <div class="relative aspect-video bg-neutral-950 flex items-center justify-center">
+                <video id="telescope-feed" autoplay playsinline muted class="w-full h-full object-contain hidden"></video>
+                <canvas id="detection-canvas" width="1280" height="720" class="w-full h-full object-contain"></canvas>
+            </div>
+            <input type="file" id="file-upload" class="hidden">
+        </div>
+
+        <!-- FALLBACK PC CAMERA PROMPT BANNER -->
+        <div id="camera-fallback-prompt" class="p-4 bg-sky-500/10 border border-sky-500/30 rounded-xl flex items-center justify-between gap-4" style="display:none;">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-lg">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-white">Telescope Hardware Not Detected</h4>
+                    <p class="text-[11px] text-neutral-400">Connect your PC Camera or Webcam feed to reliably perform live AI observations.</p>
+                </div>
+            </div>
+            <button class="px-3 py-1.5 bg-sky-500 text-black font-extrabold text-xs rounded-lg hover:bg-sky-400 transition-colors" onclick="Observatory.switchInput('webcam')">
+                Connect PC Camera
+            </button>
+        </div>
+
+        <!-- TELESCOPE MOUNT CONTROL PANEL -->
+        <div class="p-6 bg-neutral-950 rounded-2xl border border-neutral-800/80 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-neutral-800/80">
+                <div class="flex items-center gap-2.5">
+                    <i class="fas fa-compass text-sky-400"></i>
+                    <h3 class="text-sm font-bold text-white">Mount Telemetry & Slew Controls</h3>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold" id="telescope-mode-badge">STATUS: ACTIVE</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button class="px-3 py-1.5 rounded-lg border border-neutral-800 text-xs font-semibold text-neutral-300 hover:text-white transition-colors" id="tel-connect-btn">Connect Mount</button>
+                    <button class="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-extrabold text-xs transition-colors flex items-center gap-1.5" id="tel-stop-btn">
+                        <i class="fas fa-circle-stop"></i> EMERGENCY STOP
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                <!-- Status & Telemetry -->
+                <div class="space-y-2 text-xs font-mono">
+                    <div class="flex justify-between p-2 rounded bg-neutral-900/60 border border-neutral-800/60">
+                        <span class="text-neutral-500">MOUNT</span>
+                        <span class="text-emerald-400 font-bold" id="tel-status-text">CONNECTED</span>
+                    </div>
+                    <div class="flex justify-between p-2 rounded bg-neutral-900/60 border border-neutral-800/60">
+                        <span class="text-neutral-500">TARGET</span>
+                        <span class="text-sky-400 font-bold" id="tel-target-text">Jupiter</span>
+                    </div>
+                    <div class="flex justify-between p-2 rounded bg-neutral-900/60 border border-neutral-800/60">
+                        <span class="text-neutral-500">ALTITUDE</span>
+                        <span class="text-white font-bold" id="tel-alt-text">48.1°</span>
+                    </div>
+                    <div class="flex justify-between p-2 rounded bg-neutral-900/60 border border-neutral-800/60">
+                        <span class="text-neutral-500">AZIMUTH</span>
+                        <span class="text-white font-bold" id="tel-az-text">72.4°</span>
+                    </div>
+                </div>
+
+                <!-- GOTO Selection -->
+                <div class="space-y-3">
+                    <label class="text-xs font-bold text-neutral-400 uppercase tracking-wider block">Slew To Target</label>
+                    <div class="flex gap-2">
+                        <select id="tel-goto-target" class="flex-1 bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                            <option value="Jupiter">Jupiter</option>
+                            <option value="Moon">Moon</option>
+                            <option value="Saturn">Saturn</option>
+                            <option value="Mars">Mars</option>
+                            <option value="Venus">Venus</option>
+                            <option value="Orion Nebula">Orion Nebula</option>
+                        </select>
+                        <button id="tel-goto-btn" class="px-4 py-2 bg-sky-500 text-black font-extrabold text-xs rounded-lg hover:bg-sky-400 transition-colors">
+                            GOTO
+                        </button>
+                    </div>
+                    <button id="automate-workflow-btn" class="w-full py-2.5 rounded-lg bg-gradient-to-r from-sky-500 to-sky-400 text-black font-extrabold text-xs shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+                        <i class="fas fa-rocket"></i> AUTOMATE OBSERVATION
+                    </button>
+                </div>
+
+                <!-- Directional Pad -->
+                <div class="flex flex-col items-center gap-1">
+                    <button class="w-10 h-8 rounded bg-neutral-900 border border-neutral-800 text-neutral-300 text-xs font-bold hover:bg-neutral-800 hover:text-white" onclick="Observatory.moveMount('north')">N</button>
+                    <div class="flex gap-1">
+                        <button class="w-10 h-8 rounded bg-neutral-900 border border-neutral-800 text-neutral-300 text-xs font-bold hover:bg-neutral-800 hover:text-white" onclick="Observatory.moveMount('west')">W</button>
+                        <button class="w-12 h-8 rounded bg-red-600/20 border border-red-500/40 text-red-400 text-[10px] font-black hover:bg-red-600 hover:text-white" onclick="Observatory.stopMount()">STOP</button>
+                        <button class="w-10 h-8 rounded bg-neutral-900 border border-neutral-800 text-neutral-300 text-xs font-bold hover:bg-neutral-800 hover:text-white" onclick="Observatory.moveMount('east')">E</button>
+                    </div>
+                    <button class="w-10 h-8 rounded bg-neutral-900 border border-neutral-800 text-neutral-300 text-xs font-bold hover:bg-neutral-800 hover:text-white" onclick="Observatory.moveMount('south')">S</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: AI TELEMETRY PANEL -->
+    <div class="p-6 bg-neutral-950 rounded-2xl border border-neutral-800/80 flex flex-col h-full space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-neutral-800/80">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fas fa-brain text-sky-400"></i> AI Detection Telemetry
+            </h3>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-bold" id="detector-badge">YOLOv8 Engine</span>
+        </div>
+
+        <div id="detection-results" class="flex-1 overflow-y-auto space-y-3">
+            <div class="p-8 text-center text-neutral-500 space-y-2">
+                <i class="fas fa-telescope text-2xl text-sky-400/40"></i>
+                <p class="text-xs font-medium text-neutral-400">No celestial objects detected yet</p>
+                <p class="text-[11px]">Select an input source and click <strong>Run Detection</strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/observatory.js"></script>
+{% endblock %}

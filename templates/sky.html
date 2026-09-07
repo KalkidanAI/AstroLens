@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Sky Map | AstroLens — Interactive Celestial Map{% endblock %}
+
+{% block content %}
+<!-- PAGE HEADER -->
+<div class="flex flex-col md:flex-row md:items-center justify-between pb-6 mb-6 border-b border-neutral-800/80 gap-4">
+    <div>
+        <h1 class="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+            <span>Interactive Sky Map</span>
+            <span class="text-xs px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-mono font-semibold">2D/3D EPHEMERIS</span>
+        </h1>
+        <p class="text-xs text-neutral-400 mt-1">Real-time star chart for <span id="sky-location" class="text-white font-semibold">Addis Ababa</span> • Local Time: <span id="sky-time" class="font-mono text-sky-400">--:--</span></p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- SKY MAP CANVAS CONTAINER -->
+    <div class="lg:col-span-2 p-6 bg-neutral-950 rounded-2xl border border-neutral-800/80 flex flex-col items-center justify-center relative overflow-hidden">
+        <div class="w-full aspect-square max-w-[640px] relative flex items-center justify-center">
+            <canvas id="sky-canvas" width="800" height="800" class="w-full h-full object-contain cursor-crosshair"></canvas>
+        </div>
+        
+        <!-- Legend Overlay -->
+        <div class="mt-4 flex flex-wrap gap-4 text-xs font-medium text-neutral-400 bg-neutral-900/60 px-4 py-2 rounded-xl border border-neutral-800/80">
+            <span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Planet</span>
+            <span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-white"></span> Star</span>
+            <span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span> Moon</span>
+            <span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span> Deep Sky</span>
+        </div>
+    </div>
+
+    <!-- OBJECT DETAIL INFO PANEL -->
+    <div class="p-6 bg-neutral-950 rounded-2xl border border-neutral-800/80 flex flex-col h-full" id="sky-info">
+        <div class="p-8 text-center text-neutral-500 space-y-3 my-auto">
+            <i class="fas fa-crosshairs text-3xl text-sky-400/40"></i>
+            <h3 class="text-xs font-bold text-white uppercase tracking-wider">Select a Celestial Target</h3>
+            <p class="text-[11px] text-neutral-400 leading-relaxed">
+                Click any planet or star on the interactive map to view detailed ephemeris, altitude, azimuth, and description.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/sky-map.js"></script>
+{% endblock %}

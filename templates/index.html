@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AstroLens — AI Powered Astronomical Observatory Platform</title>
+    <meta name="description" content="AstroLens turns any motorized telescope into a shared intelligent observatory with real-time YOLO AI object detection, Stellarium synchronization, and live stream access.">
+    <meta name="theme-color" content="#000000">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="landing">
+    <div id="toast-container"></div>
+
+    <!-- SITE HEADER -->
+    <header class="site-header" id="site-header">
+        <nav class="nav-wrap" aria-label="Primary">
+            <a href="/" class="brand" aria-label="AstroLens home">
+                <div class="brand-mark"></div>
+                <span>ASTRO<span>LENS</span></span>
+            </a>
+
+            <div class="nav-auth-actions" id="landing-auth-nav">
+                <a href="/login" class="btn btn-outline btn-sm"><i class="fas fa-right-to-bracket"></i> Sign In</a>
+                <a href="/signup" class="btn btn-primary btn-sm"><i class="fas fa-user-plus"></i> Get Started</a>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        <!-- HERO SECTION ONLY -->
+        <section class="hero" id="top" style="min-height: 82vh; display: flex; align-items: center;">
+            <div class="container hero-grid">
+                <div class="reveal">
+                    <div class="eyebrow"><span class="pulse-dot"></span> <i class="fas fa-microchip"></i> AI Powered Observatory Platform</div>
+                    <h1 class="hero-heading">
+                        Turning any telescope into a <span class="sky-text">shared AI observatory.</span>
+                    </h1>
+                    <p class="hero-lead">
+                        AstroLens bridges Python Flask, YOLOv8 computer vision, and Stellarium ephemeris—allowing observers to watch live video feeds, detect celestial targets in real time, and explore the night sky together.
+                    </p>
+                    <div class="hero-actions">
+                        <a href="/signup" class="btn btn-primary btn-lg"><i class="fas fa-user-plus"></i> Get Started Free</a>
+                        <a href="/observatory" class="btn btn-outline btn-lg"><i class="fas fa-telescope"></i> Open Observatory</a>
+                    </div>
+                </div>
+
+                <div class="showcase reveal" style="transition-delay: 160ms;">
+                    <div class="browser">
+                        <div class="browser-bar">
+                            <div class="browser-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+                            <div class="browser-url"><i class="fa-solid fa-lock"></i> app.astrolens.ai/observatory</div>
+                            <div class="browser-status"><span class="pulse-dot"></span> LIVE SYNC</div>
+                        </div>
+                        <div class="browser-body">
+                            <!-- TOP TELEMETRY HUD VIEWPORT -->
+                            <div class="hud-viewport">
+                                <div class="hud-grid-overlay"></div>
+                                <div class="hud-target-box">
+                                    <div class="hud-corner tl"></div>
+                                    <div class="hud-corner tr"></div>
+                                    <div class="hud-corner bl"></div>
+                                    <div class="hud-corner br"></div>
+                                    <div class="hud-label">SATURN • YOLOv8 98.4%</div>
+                                </div>
+                                <div class="hud-crosshair"></div>
+                                <div class="hud-metrics">
+                                    <div><span>RA</span> 19h 50m</div>
+                                    <div><span>DEC</span> +08° 52'</div>
+                                    <div><span>ALT</span> 52.4°</div>
+                                    <div><span>TRACK</span> LOCK</div>
+                                </div>
+                            </div>
+
+                            <!-- BOTTOM TERMINAL LOG STREAM -->
+                            <div class="hero-terminal">
+                                <div class="terminal-header">
+                                    <span><i class="fas fa-terminal"></i> ASTROLENS_AI_ENGINE</span>
+                                    <span class="terminal-badge"><i class="fas fa-bolt"></i> CUDA GPU</span>
+                                </div>
+                                <div class="terminal-body">
+                                    <div class="terminal-line"><span class="t-dim">[00:00:01]</span> <span class="t-blue">INFO</span> Flask API bridge connected to Stellarium (127.0.0.1:8090)</div>
+                                    <div class="terminal-line"><span class="t-dim">[00:00:02]</span> <span class="t-green">SYNC</span> Mount tracking target: <span class="t-white">SATURN (RA 19h 50m 47s)</span></div>
+                                    <div class="terminal-line"><span class="t-dim">[00:00:03]</span> <span class="t-sky">YOLO</span> AI weights loaded: <span class="t-white">yolov8_astro.pt</span></div>
+                                    <div class="terminal-line"><span class="t-dim">[00:00:04]</span> <span class="t-green">LOCK</span> Object verified: <span class="t-sky">Saturn (Confidence: 98.4%)</span> | 12ms</div>
+                                    <div class="terminal-line t-prompt"><span class="t-blue">astrolens@observatory:~$</span> <span class="t-cursor">█</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ULTRA MINIMAL FOOTER -->
+    <footer class="minimal-footer">
+        <div class="container footer-inner">
+            <div class="footer-brand">
+                <span class="brand-text">ASTRO<span>LENS</span></span>
+                <span class="footer-copy">&copy; 2026</span>
+            </div>
+            <div class="footer-status">
+                <span class="pulse-dot"></span>
+                <span>System Operational</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+      (function () {
+        var header = document.getElementById('site-header');
+        window.addEventListener('scroll', function () {
+          if (!header) return;
+          if (window.scrollY > 20) header.classList.add('is-scrolled');
+          else header.classList.remove('is-scrolled');
+        }, { passive: true });
+
+        if ('IntersectionObserver' in window) {
+          var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-in');
+                io.unobserve(entry.target);
+              }
+            });
+          }, { threshold: 0.1 });
+          document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+        } else {
+          document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('is-in'); });
+        }
+
+        var user = AstroLens.getUser();
+        var navAuth = document.getElementById('landing-auth-nav');
+        if (user && navAuth) {
+            navAuth.innerHTML = `
+                <div style="display:flex; align-items:center; gap:0.5rem; background:#111111; padding:0.3rem 0.75rem; border-radius:var(--radius-pill); border:1px solid var(--border-color);">
+                    <span style="font-weight:600; font-size:0.85rem; color:#ffffff;">${user.username}</span>
+                </div>
+                <a href="/dashboard" class="btn btn-primary btn-sm"><i class="fas fa-house"></i> Enter Observatory</a>
+                <button onclick="AstroLens.logout()" class="btn btn-outline btn-sm"><i class="fas fa-arrow-right-from-bracket"></i> Logout</button>
+            `;
+        }
+      })();
+    </script>
+</body>
+</html>

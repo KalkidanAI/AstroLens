@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Settings | AstroLens Configuration{% endblock %}
+
+{% block content %}
+<!-- PAGE HEADER -->
+<div class="flex flex-col md:flex-row md:items-center justify-between pb-6 mb-6 border-b border-neutral-800/80 gap-4">
+    <div>
+        <h1 class="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+            <span>Settings & Preferences</span>
+            <span class="text-xs px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-mono font-semibold">CONFIG</span>
+        </h1>
+        <p class="text-xs text-neutral-400 mt-1">Configure observatory location, AI engine thresholds, telescope hardware, and display options</p>
+    </div>
+</div>
+
+<div class="space-y-6 max-w-4xl">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- LOCATION SETTINGS -->
+        <div class="p-6 bg-neutral-950 rounded-2xl border border-neutral-800/80 space-y-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2 pb-3 border-b border-neutral-800/80">
+                <i class="fas fa-location-dot text-sky-400"></i> Location & Coordinates
+            </h3>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="text-neutral-400 font-semibold block mb-1">Location Name</label>
+                    <input type="text" id="setting-location-name" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500" value="Addis Ababa, Ethiopia">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-neutral-400 font-semibold block mb-1">Latitude (°)</label>
+                        <input type="number" id="setting-latitude" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500" value="9.03" step="0.01">
+                    </div>
+                    <div>
+                        <label class="text-neutral-400 font-semibold block mb-1">Longitude (°)</label>
+                        <input type="number" id="setting-longitude" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500" value="38.74" step="0.01">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-neutral-400 font-semibold block mb-1">Timezone</label>
+                    <input type="text" id="setting-timezone" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500" value="Africa/Addis_Ababa">
+                </div>
+            </div>
+        </div>
+
+        <!-- TELESCOPE & CAMERA SETTINGS -->
+        <div class="p-6 bg-neutral-950 rounded-2xl border border-neutral-800/80 space-y-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2 pb-3 border-b border-neutral-800/80">
+                <i class="fas fa-telescope text-sky-400"></i> Telescope & Camera
+            </h3>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="text-neutral-400 font-semibold block mb-1">Default Input Source</label>
+                    <select id="setting-input-source" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500">
+                        <option value="demo">Demo Feed</option>
+                        <option value="webcam" selected>PC Camera / Webcam</option>
+                        <option value="image">Image File</option>
+                        <option value="video">Video File</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-neutral-400 font-semibold block mb-1">Camera Resolution</label>
+                    <select id="setting-resolution" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500">
+                        <option value="1280x720">1280×720 (HD)</option>
+                        <option value="1920x1080">1920×1080 (Full HD)</option>
+                        <option value="640x480">640×480 (VGA)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-neutral-400 font-semibold block mb-1">Stellarium API</label>
+                    <div class="flex items-center justify-between p-2 rounded-lg bg-neutral-900 border border-neutral-800">
+                        <span class="text-red-400 font-bold font-mono" id="stellarium-setting-text"><i class="fas fa-circle-xmark mr-1"></i> Offline</span>
+                        <button class="px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-white rounded text-[11px] font-semibold transition-colors" id="test-stellarium-btn-settings" onclick="AstroLens.testStellariumConnection()">
+                            Test Endpoint
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI ENGINE SETTINGS -->
+        <div class="p-6 bg-neutral-950 rounded-2xl border border-neutral-800/80 space-y-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2 pb-3 border-b border-neutral-800/80">
+                <i class="fas fa-microchip text-sky-400"></i> AI Engine
+            </h3>
+            <div class="space-y-4 text-xs">
+                <div>
+                    <div class="flex justify-between text-neutral-400 font-semibold mb-1">
+                        <span>Confidence Threshold</span>
+                        <span class="text-sky-400 font-mono font-bold" id="threshold-value">50%</span>
+                    </div>
+                    <input type="range" id="setting-threshold" class="w-full accent-sky-400 cursor-pointer" min="10" max="100" value="50">
+                </div>
+                <div>
+                    <span class="text-neutral-400 font-semibold block mb-1">Classifier Status</span>
+                    <div class="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold flex items-center gap-2">
+                        <i class="fas fa-circle-check"></i> AstroLens YOLOv8 Engine Active
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DISPLAY SETTINGS -->
+        <div class="p-6 bg-neutral-950 rounded-2xl border border-neutral-800/80 space-y-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2 pb-3 border-b border-neutral-800/80">
+                <i class="fas fa-sliders text-sky-400"></i> Display Preferences
+            </h3>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="text-neutral-400 font-semibold block mb-1">Theme Aesthetic</label>
+                    <select id="setting-theme" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500">
+                        <option value="dark">Vercel Dark & Electric Sky Blue</option>
+                    </select>
+                </div>
+                <label class="flex items-center gap-2.5 text-neutral-300 cursor-pointer pt-1">
+                    <input type="checkbox" id="setting-grid" checked class="rounded border-neutral-800 bg-neutral-900 text-sky-500 focus:ring-0">
+                    <span>Show Sky Map Grid Lines</span>
+                </label>
+                <label class="flex items-center gap-2.5 text-neutral-300 cursor-pointer">
+                    <input type="checkbox" id="setting-labels" checked class="rounded border-neutral-800 bg-neutral-900 text-sky-500 focus:ring-0">
+                    <span>Show Celestial Telemetry Labels</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="flex gap-3 pt-2">
+        <button class="px-6 py-2.5 bg-sky-500 hover:bg-sky-400 text-black font-extrabold text-xs rounded-xl shadow-lg shadow-sky-500/20 transition-all flex items-center gap-2" id="save-settings">
+            <i class="fas fa-floppy-disk"></i> Save Settings
+        </button>
+        <button class="px-6 py-2.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white font-semibold text-xs rounded-xl transition-all" id="reset-settings">
+            Reset Defaults
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/settings.js"></script>
+{% endblock %}
