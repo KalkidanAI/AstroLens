@@ -14,9 +14,17 @@ load_dotenv()
 
 logger = logging.getLogger('AstroLens.Verification')
 
-VISUAL_WEIGHT = float(os.getenv('VISUAL_WEIGHT', '0.40'))
-POSITION_WEIGHT = float(os.getenv('POSITION_WEIGHT', '0.35'))
-TELESCOPE_WEIGHT = float(os.getenv('TELESCOPE_WEIGHT', '0.25'))
+def _safe_float(val, default):
+    try:
+        if val is not None and str(val).strip() != '':
+            return float(val)
+    except (ValueError, TypeError):
+        pass
+    return default
+
+VISUAL_WEIGHT = _safe_float(os.getenv('VISUAL_WEIGHT'), 0.40)
+POSITION_WEIGHT = _safe_float(os.getenv('POSITION_WEIGHT'), 0.35)
+TELESCOPE_WEIGHT = _safe_float(os.getenv('TELESCOPE_WEIGHT'), 0.25)
 
 
 class VerificationEngine:
