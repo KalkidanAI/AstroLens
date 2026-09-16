@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
@@ -13,6 +13,16 @@ class VercelPathMiddleware:
         return self.wsgi_app(environ, start_response)
 
 app.wsgi_app = VercelPathMiddleware(app.wsgi_app)
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({
+        "error": "404 Not Found",
+        "path": request.path,
+        "x_matched_path": request.headers.get('x-matched-path'),
+        "environ_path": request.environ.get('PATH_INFO'),
+        "headers": dict(request.headers)
+    }), 404
 
 @app.route('/')
 def home():
