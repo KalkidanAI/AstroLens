@@ -35,10 +35,11 @@ class MockDetector:
         main_class = target_hint if target_hint in self.classes else "Jupiter"
         confidence = round(random.uniform(0.88, 0.97), 2)
 
-        box_w = random.randint(80, 140)
-        box_h = random.randint(80, 140)
-        x1 = (width - box_w) // 2
-        y1 = (height - box_h) // 2
+        # Safe bounding box for any image dimension
+        box_w = min(max(width - 20, 20), random.randint(60, 140))
+        box_h = min(max(height - 20, 20), random.randint(60, 140))
+        x1 = max(0, (width - box_w) // 2)
+        y1 = max(0, (height - box_h) // 2)
 
         detections = [{
             "class": main_class,
@@ -58,11 +59,14 @@ class MockDetector:
         }]
 
         # Optional second star/secondary object detection
-        if random.random() > 0.4:
+        if random.random() > 0.4 and width > 120 and height > 120:
             sec_class = random.choice(['Star', 'Moon', 'Saturn'])
-            sec_w, sec_h = random.randint(30, 70), random.randint(30, 70)
-            sec_x1 = random.randint(20, width - sec_w - 20)
-            sec_y1 = random.randint(20, height - sec_h - 20)
+            sec_w = min(width // 4, random.randint(20, 50))
+            sec_h = min(height // 4, random.randint(20, 50))
+            max_x = max(10, width - sec_w - 10)
+            max_y = max(10, height - sec_h - 10)
+            sec_x1 = random.randint(5, max_x)
+            sec_y1 = random.randint(5, max_y)
             detections.append({
                 "class": sec_class,
                 "class_name": sec_class,

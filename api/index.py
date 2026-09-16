@@ -234,7 +234,8 @@ def run_detect():
             return jsonify({"error": "Failed to decode image"}), 400
         
         # Run detection
-        detections = detector.detect(img)
+        detection_result = detector.detect(img)
+        detections = detection_result.get("detections", []) if isinstance(detection_result, dict) else (detection_result or [])
         
         # Enrich with astronomy verification
         settings = load_json('settings.json')
@@ -242,12 +243,13 @@ def run_detect():
         lon = settings.get('location', {}).get('longitude', 38.74)
         
         for det in detections:
+            cls_name = det.get('class_name') or det.get('class', 'Unknown')
             verification = astronomy_service.verify_detection(
-                det['class_name'], lat, lon
+                cls_name, lat, lon
             )
             det['verification'] = verification
             # Add object type from catalog
-            obj_pos = astronomy_service.get_object_position(det['class_name'], lat, lon)
+            obj_pos = astronomy_service.get_object_position(cls_name, lat, lon)
             if obj_pos:
                 det['type'] = obj_pos.get('type', 'unknown')
             else:
