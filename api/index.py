@@ -1,3 +1,4 @@
+import urllib.parse
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
@@ -7,22 +8,17 @@ class VercelPathMiddleware:
         self.wsgi_app = wsgi_app
 
     def __call__(self, environ, start_response):
-        matched_path = environ.get('HTTP_X_MATCHED_PATH')
-        if matched_path:
-            environ['PATH_INFO'] = matched_path
+        query_string = environ.get('QUERY_STRING', '')
+        if '__path=' in query_string:
+            parsed = urllib.parse.parse_qs(query_string)
+            if '__path' in parsed and parsed['__path']:
+                target = parsed['__path'][0]
+                environ['PATH_INFO'] = '/' + target.lstrip('/')
+            else:
+                environ['PATH_INFO'] = '/'
         return self.wsgi_app(environ, start_response)
 
 app.wsgi_app = VercelPathMiddleware(app.wsgi_app)
-
-@app.errorhandler(404)
-def not_found(e):
-    return jsonify({
-        "error": "404 Not Found",
-        "path": request.path,
-        "x_matched_path": request.headers.get('x-matched-path'),
-        "environ_path": request.environ.get('PATH_INFO'),
-        "headers": dict(request.headers)
-    }), 404
 
 @app.route('/')
 def home():
@@ -34,4 +30,4 @@ def dashboard():
 
 @app.route('/api/status')
 def status():
-    return {"status": "online"}, 200
+    return jsonify({"status": "online", "message": "AstroLens Vercel is working!"}), 200
