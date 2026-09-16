@@ -29,24 +29,57 @@ def decode_image(img_bytes):
         pil_img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
         return np.array(pil_img)[:, :, ::-1]
 
-from api.ml.detector import AstronomyDetector, AstroDetector
-from api.services.astronomy import AstronomyService
-from api.services.telescope import TelescopeService
-from api.services.camera import CameraService
-from api.services.verification import VerificationService
-from api.services.stellarium import StellariumService
-from api.services.auth import AuthService
-from api.utils import load_json, save_json, generate_id
+try:
+    from api.ml.detector import AstronomyDetector, AstroDetector
+    from api.services.astronomy import AstronomyService
+    from api.services.telescope import TelescopeService
+    from api.services.camera import CameraService
+    from api.services.verification import VerificationService
+    from api.services.stellarium import StellariumService
+    from api.services.auth import AuthService
+    from api.utils import load_json, save_json, generate_id
+except ImportError:
+    from ml.detector import AstronomyDetector, AstroDetector
+    from services.astronomy import AstronomyService
+    from services.telescope import TelescopeService
+    from services.camera import CameraService
+    from services.verification import VerificationService
+    from services.stellarium import StellariumService
+    from services.auth import AuthService
+    from utils import load_json, save_json, generate_id
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('AstroLens')
 
+# Robust template & static directory resolution for both local and Vercel environments
+_cur_dir = os.path.dirname(os.path.abspath(__file__))
+_par_dir = os.path.dirname(_cur_dir)
+
+_template_candidates = [
+    os.path.join(_par_dir, 'templates'),
+    os.path.join(_cur_dir, 'templates'),
+    os.path.join(_cur_dir, '../templates'),
+    'templates'
+]
+template_folder = next((d for d in _template_candidates if os.path.isdir(d)), os.path.join(_par_dir, 'templates'))
+
+_static_candidates = [
+    os.path.join(_par_dir, 'static'),
+    os.path.join(_cur_dir, 'static'),
+    os.path.join(_cur_dir, '../static'),
+    'static'
+]
+static_folder = next((d for d in _static_candidates if os.path.isdir(d)), os.path.join(_par_dir, 'static'))
+
 # Flask app
 app = Flask(__name__,
-            template_folder='../templates',
-            static_folder='../static')
+            template_folder=template_folder,
+            static_folder=static_folder)
 CORS(app)
+
+# Vercel WSGI / Serverless handler
+handler = app
 
 # Initialize services
 detector = AstronomyDetector()

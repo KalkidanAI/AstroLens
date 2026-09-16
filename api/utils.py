@@ -4,7 +4,14 @@ import shutil
 import tempfile
 from datetime import datetime
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+_cur_dir = os.path.dirname(os.path.abspath(__file__))
+_data_candidates = [
+    os.path.join(_cur_dir, 'data'),
+    os.path.join(os.path.dirname(_cur_dir), 'api', 'data'),
+    os.path.join(_cur_dir, '../api/data'),
+    'api/data'
+]
+DATA_DIR = next((d for d in _data_candidates if os.path.isdir(d)), os.path.join(_cur_dir, 'data'))
 TMP_DATA_DIR = os.path.join(tempfile.gettempdir(), 'astrolens_data')  # For runtime writes (Windows & Vercel /tmp)
 
 def get_data_path(filename, writable=False):

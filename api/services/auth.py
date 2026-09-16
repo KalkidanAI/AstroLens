@@ -8,8 +8,10 @@ import os
 import hashlib
 import secrets
 import logging
-from datetime import datetime, timedelta
-from api.utils import load_json, save_json, generate_id
+try:
+    from api.utils import load_json, save_json, generate_id
+except ImportError:
+    from utils import load_json, save_json, generate_id
 
 logger = logging.getLogger('AstroLens.Auth')
 
