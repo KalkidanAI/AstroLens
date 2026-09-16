@@ -9,10 +9,25 @@ from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import time
-import cv2
+import io
 import numpy as np
+from PIL import Image
 from flask import Flask, jsonify, request, render_template, Response
 from flask_cors import CORS
+
+try:
+    import cv2
+except Exception:
+    cv2 = None
+
+def decode_image(img_bytes):
+    """Safely decodes image bytes into a BGR numpy array using OpenCV or PIL."""
+    if cv2 is not None:
+        np_arr = np.frombuffer(img_bytes, np.uint8)
+        return cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+    else:
+        pil_img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+        return np.array(pil_img)[:, :, ::-1]
 
 from api.ml.detector import AstronomyDetector, AstroDetector
 from api.services.astronomy import AstronomyService
@@ -227,8 +242,7 @@ def run_detect():
             image_b64 = image_b64.split(',')[1]
         
         img_bytes = base64.b64decode(image_b64)
-        np_arr = np.frombuffer(img_bytes, np.uint8)
-        img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        img = decode_image(img_bytes)
         
         if img is None:
             return jsonify({"error": "Failed to decode image"}), 400
@@ -539,8 +553,7 @@ def run_ai_detection():
             image_b64 = image_b64.split(',')[1]
 
         img_bytes = base64.b64decode(image_b64)
-        np_arr = np.frombuffer(img_bytes, np.uint8)
-        img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        img = decode_image(img_bytes)
 
         if img is None:
             return jsonify({"error": "Failed to decode image"}), 400
@@ -652,8 +665,7 @@ def automate_observation_workflow():
         # Step 5: YOLO Detection
         if img_b64:
             img_bytes = base64.b64decode(img_b64)
-            np_arr = np.frombuffer(img_bytes, np.uint8)
-            img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+            img = decode_image(img_bytes)
             ai_res = detector.detect(img, target_hint=target)
         else:
             ai_res = {"detections": [{"class": target, "confidence": 0.94}]}
