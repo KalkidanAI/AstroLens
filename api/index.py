@@ -8,9 +8,10 @@ from datetime import datetime
 # Add parent directory to sys.path for imports when running directly
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import time
 import cv2
 import numpy as np
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, Response
 from flask_cors import CORS
 
 from api.ml.detector import AstronomyDetector, AstroDetector
@@ -85,8 +86,7 @@ def objects():
 
 @app.route('/history')
 def history():
-    from flask import redirect
-    return redirect('/dashboard')
+    return render_template('history.html')
 
 @app.route('/settings')
 def settings_page():
@@ -119,6 +119,29 @@ def get_status():
             "longitude": 38.74
         }),
         "settings": settings
+    })
+
+
+@app.route('/api/stream/telemetry', methods=['GET'])
+def stream_telemetry():
+    """Real-time Server-Sent Events (SSE) telemetry stream."""
+    def generate():
+        while True:
+            tel = telescope_service.get_status()
+            stel = stellarium_service.get_status()
+            cam = camera_service.get_status()
+            data = {
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "telescope": tel,
+                "stellarium": stel,
+                "camera": cam,
+                "ai": detector.get_status()
+            }
+            yield f"data: {json.dumps(data)}\n\n"
+            time.sleep(1.0)
+    return Response(generate(), mimetype='text/event-stream', headers={
+        'Cache-Control': 'no-cache',
+        'X-Accel-Buffering': 'no'
     })
 
 

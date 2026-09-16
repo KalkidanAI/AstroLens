@@ -1,137 +1,224 @@
 {% extends "base.html" %}
 
-{% block title %}Settings | AstroLens Configuration{% endblock %}
+{% block title %}Instrument Settings | AstroLens Configuration{% endblock %}
+{% block page_name %}INSTRUMENT SETTINGS & CALIBRATION{% endblock %}
 
 {% block content %}
-<!-- PAGE HEADER -->
-<div class="flex flex-col md:flex-row md:items-center justify-between pb-6 mb-6 border-b border-neutral-800/80 gap-4">
-    <div>
-        <h1 class="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
-            <span>Settings & Preferences</span>
-            <span class="text-xs px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-mono font-semibold">CONFIG</span>
-        </h1>
-        <p class="text-xs text-neutral-400 mt-1">Configure observatory location, AI engine thresholds, telescope hardware, and display options</p>
-    </div>
-</div>
-
-<div class="space-y-6 max-w-4xl">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- LOCATION SETTINGS -->
-        <div class="p-6 bg-neutral-950 rounded-2xl border border-neutral-800/80 space-y-4">
-            <h3 class="text-sm font-bold text-white flex items-center gap-2 pb-3 border-b border-neutral-800/80">
-                <i class="fas fa-location-dot text-sky-400"></i> Location & Coordinates
-            </h3>
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="text-neutral-400 font-semibold block mb-1">Location Name</label>
-                    <input type="text" id="setting-location-name" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500" value="Addis Ababa, Ethiopia">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-neutral-400 font-semibold block mb-1">Latitude (°)</label>
-                        <input type="number" id="setting-latitude" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500" value="9.03" step="0.01">
-                    </div>
-                    <div>
-                        <label class="text-neutral-400 font-semibold block mb-1">Longitude (°)</label>
-                        <input type="number" id="setting-longitude" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500" value="38.74" step="0.01">
-                    </div>
-                </div>
-                <div>
-                    <label class="text-neutral-400 font-semibold block mb-1">Timezone</label>
-                    <input type="text" id="setting-timezone" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500" value="Africa/Addis_Ababa">
-                </div>
-            </div>
+<div class="settings-root" style="display: flex; flex-direction: column; gap: 1.25rem; max-width: 1080px;">
+    <!-- HEADER -->
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle);">
+        <div>
+            <h1 class="page-title">
+                <span>Observatory & Hardware Configuration</span>
+                <span class="subsystem-pill pill-connected" style="font-size: 0.7rem;">CALIBRATED</span>
+            </h1>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
+                Configure hardware drivers, Stellarium Remote API bridge, AI classification thresholds, and multi-signal verification weights.
+            </p>
         </div>
 
-        <!-- TELESCOPE & CAMERA SETTINGS -->
-        <div class="p-6 bg-neutral-950 rounded-2xl border border-neutral-800/80 space-y-4">
-            <h3 class="text-sm font-bold text-white flex items-center gap-2 pb-3 border-b border-neutral-800/80">
-                <i class="fas fa-telescope text-sky-400"></i> Telescope & Camera
-            </h3>
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="text-neutral-400 font-semibold block mb-1">Default Input Source</label>
-                    <select id="setting-input-source" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500">
-                        <option value="demo">Demo Feed</option>
-                        <option value="webcam" selected>PC Camera / Webcam</option>
-                        <option value="image">Image File</option>
-                        <option value="video">Video File</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-neutral-400 font-semibold block mb-1">Camera Resolution</label>
-                    <select id="setting-resolution" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500">
-                        <option value="1280x720">1280×720 (HD)</option>
-                        <option value="1920x1080">1920×1080 (Full HD)</option>
-                        <option value="640x480">640×480 (VGA)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-neutral-400 font-semibold block mb-1">Stellarium API</label>
-                    <div class="flex items-center justify-between p-2 rounded-lg bg-neutral-900 border border-neutral-800">
-                        <span class="text-red-400 font-bold font-mono" id="stellarium-setting-text"><i class="fas fa-circle-xmark mr-1"></i> Offline</span>
-                        <button class="px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-white rounded text-[11px] font-semibold transition-colors" id="test-stellarium-btn-settings" onclick="AstroLens.testStellariumConnection()">
-                            Test Endpoint
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- AI ENGINE SETTINGS -->
-        <div class="p-6 bg-neutral-950 rounded-2xl border border-neutral-800/80 space-y-4">
-            <h3 class="text-sm font-bold text-white flex items-center gap-2 pb-3 border-b border-neutral-800/80">
-                <i class="fas fa-microchip text-sky-400"></i> AI Engine
-            </h3>
-            <div class="space-y-4 text-xs">
-                <div>
-                    <div class="flex justify-between text-neutral-400 font-semibold mb-1">
-                        <span>Confidence Threshold</span>
-                        <span class="text-sky-400 font-mono font-bold" id="threshold-value">50%</span>
-                    </div>
-                    <input type="range" id="setting-threshold" class="w-full accent-sky-400 cursor-pointer" min="10" max="100" value="50">
-                </div>
-                <div>
-                    <span class="text-neutral-400 font-semibold block mb-1">Classifier Status</span>
-                    <div class="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold flex items-center gap-2">
-                        <i class="fas fa-circle-check"></i> AstroLens YOLOv8 Engine Active
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- DISPLAY SETTINGS -->
-        <div class="p-6 bg-neutral-950 rounded-2xl border border-neutral-800/80 space-y-4">
-            <h3 class="text-sm font-bold text-white flex items-center gap-2 pb-3 border-b border-neutral-800/80">
-                <i class="fas fa-sliders text-sky-400"></i> Display Preferences
-            </h3>
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="text-neutral-400 font-semibold block mb-1">Theme Aesthetic</label>
-                    <select id="setting-theme" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500">
-                        <option value="dark">Vercel Dark & Electric Sky Blue</option>
-                    </select>
-                </div>
-                <label class="flex items-center gap-2.5 text-neutral-300 cursor-pointer pt-1">
-                    <input type="checkbox" id="setting-grid" checked class="rounded border-neutral-800 bg-neutral-900 text-sky-500 focus:ring-0">
-                    <span>Show Sky Map Grid Lines</span>
-                </label>
-                <label class="flex items-center gap-2.5 text-neutral-300 cursor-pointer">
-                    <input type="checkbox" id="setting-labels" checked class="rounded border-neutral-800 bg-neutral-900 text-sky-500 focus:ring-0">
-                    <span>Show Celestial Telemetry Labels</span>
-                </label>
-            </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <button class="btn-tech btn-tech-outline" id="reset-settings">
+                Reset Defaults
+            </button>
+            <button class="btn-tech btn-tech-primary" id="save-settings">
+                <i class="fas fa-floppy-disk"></i> Save Configuration
+            </button>
         </div>
     </div>
 
-    <!-- ACTION BUTTONS -->
-    <div class="flex gap-3 pt-2">
-        <button class="px-6 py-2.5 bg-sky-500 hover:bg-sky-400 text-black font-extrabold text-xs rounded-xl shadow-lg shadow-sky-500/20 transition-all flex items-center gap-2" id="save-settings">
-            <i class="fas fa-floppy-disk"></i> Save Settings
-        </button>
-        <button class="px-6 py-2.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white font-semibold text-xs rounded-xl transition-all" id="reset-settings">
-            Reset Defaults
-        </button>
+    <!-- TECHNICAL SETTINGS GRID (2 COLUMNS) -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;" class="settings-grid">
+        
+        <!-- 1. STELLARIUM CONFIGURATION -->
+        <div class="instrument-panel">
+            <div class="panel-header">
+                <span class="panel-header-title">
+                    <i class="fas fa-globe text-cyan"></i> Stellarium Remote Control API
+                </span>
+                <button class="btn-tech btn-tech-outline" style="padding: 0.2rem 0.5rem; font-size: 0.7rem;" onclick="AstroLens.testStellariumConnection()">
+                    Test Connection
+                </button>
+            </div>
+            <div class="panel-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div>
+                    <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Stellarium API Host URL</label>
+                    <input type="text" id="setting-stel-url" class="tech-input font-mono" value="http://localhost">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div>
+                        <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">API Port</label>
+                        <input type="number" id="setting-stel-port" class="tech-input font-mono" value="8090">
+                    </div>
+                    <div>
+                        <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Timeout (ms)</label>
+                        <input type="number" id="setting-stel-timeout" class="tech-input font-mono" value="3000">
+                    </div>
+                </div>
+                <div class="telemetry-row">
+                    <span class="label">STATUS DIAGNOSTIC</span>
+                    <span class="val font-mono" id="stellarium-setting-text" style="color: var(--ruby-accent);">OFFLINE</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. TELESCOPE MOUNT DRIVER -->
+        <div class="instrument-panel">
+            <div class="panel-header">
+                <span class="panel-header-title">
+                    <i class="fas fa-satellite-dish text-cyan"></i> Telescope Hardware Mount
+                </span>
+                <span class="subsystem-pill pill-mock">ASCOM / INDI</span>
+            </div>
+            <div class="panel-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div>
+                    <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Mount Driver Protocol</label>
+                    <select id="setting-telescope-driver" class="tech-select font-mono">
+                        <option value="mock" selected>Mock Virtual Slew Mount (Development)</option>
+                        <option value="ascom">ASCOM Alpaca Mount Interface (Physical)</option>
+                        <option value="indi">INDI Library Mount Daemon (Physical)</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div>
+                        <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Max Slew Rate (°/s)</label>
+                        <input type="number" id="setting-slew-rate" class="tech-input font-mono" value="4.0" step="0.5">
+                    </div>
+                    <div>
+                        <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Park Altitude (°)</label>
+                        <input type="number" id="setting-park-alt" class="tech-input font-mono" value="0.0">
+                    </div>
+                </div>
+                <div style="font-size: 0.72rem; color: var(--text-dim); line-height: 1.4;">
+                    Physical telescope movement is only simulated when set to Mock. Certified solar safety interlock active.
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. CAMERA OPTICS SENSOR -->
+        <div class="instrument-panel">
+            <div class="panel-header">
+                <span class="panel-header-title">
+                    <i class="fas fa-camera text-cyan"></i> Camera Sensor & Capture
+                </span>
+                <span class="subsystem-pill pill-connected">HD READY</span>
+            </div>
+            <div class="panel-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div>
+                    <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Default Input Source</label>
+                    <select id="setting-input-source" class="tech-select font-mono">
+                        <option value="demo">Synthetic Astronomical Demo Sky</option>
+                        <option value="webcam" selected>PC Camera / USB Sensor (Webcam)</option>
+                        <option value="image">FITS / Static Image File</option>
+                        <option value="video">Pre-recorded Video Stream</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div>
+                        <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Resolution Profile</label>
+                        <select id="setting-resolution" class="tech-select font-mono">
+                            <option value="1920x1080">1920 × 1080 (Full HD)</option>
+                            <option value="1280x720" selected>1280 × 720 (HD 720p)</option>
+                            <option value="640x480">640 × 480 (VGA 60FPS)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Frame Target FPS</label>
+                        <input type="number" id="setting-fps-target" class="tech-input font-mono" value="30">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. AI VISION ENGINE -->
+        <div class="instrument-panel">
+            <div class="panel-header">
+                <span class="panel-header-title">
+                    <i class="fas fa-microchip text-cyan"></i> AI Detection Model
+                </span>
+                <span class="subsystem-pill pill-connected">YOLOv8n ACTIVE</span>
+            </div>
+            <div class="panel-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div>
+                    <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Weights Model Path</label>
+                    <input type="text" id="setting-ai-path" class="tech-input font-mono" value="api/ml/model/best.pt" readonly>
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                        <span class="label-tech">Confidence Threshold</span>
+                        <span class="font-mono" style="color: var(--cyan-accent); font-weight: 700;" id="threshold-value">50%</span>
+                    </div>
+                    <input type="range" id="setting-threshold" min="10" max="95" value="50" style="width: 100%; accent-color: var(--cyan-accent); cursor: pointer;">
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-dim);">
+                    <span>CLASSES: Planets, Moon, Stars, Deep Sky</span>
+                    <span style="color: var(--emerald-accent); font-family: var(--font-mono);">INFERENCE: 12ms (CUDA)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. MULTI-SIGNAL VERIFICATION WEIGHTS -->
+        <div class="instrument-panel">
+            <div class="panel-header">
+                <span class="panel-header-title">
+                    <i class="fas fa-certificate text-cyan"></i> Astronomical Verification Weights
+                </span>
+                <span class="subsystem-pill pill-connected">TRI-SIGNAL</span>
+            </div>
+            <div class="panel-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.2rem;">
+                        <span class="label-tech">1. Visual AI Weight</span>
+                        <span class="font-mono" style="color: var(--cyan-accent); font-weight: 700;">40%</span>
+                    </div>
+                    <input type="range" id="setting-weight-ai" min="10" max="80" value="40" style="width: 100%; accent-color: var(--cyan-accent);">
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.2rem;">
+                        <span class="label-tech">2. Stellarium Position Weight</span>
+                        <span class="font-mono" style="color: var(--emerald-accent); font-weight: 700;">35%</span>
+                    </div>
+                    <input type="range" id="setting-weight-stel" min="10" max="80" value="35" style="width: 100%; accent-color: var(--emerald-accent);">
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.2rem;">
+                        <span class="label-tech">3. Telescope Mount Pointing Weight</span>
+                        <span class="font-mono" style="color: var(--emerald-accent); font-weight: 700;">25%</span>
+                    </div>
+                    <input type="range" id="setting-weight-mount" min="10" max="80" value="25" style="width: 100%; accent-color: var(--emerald-accent);">
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. SYSTEM & OBSERVER LOCATION -->
+        <div class="instrument-panel">
+            <div class="panel-header">
+                <span class="panel-header-title">
+                    <i class="fas fa-location-dot text-cyan"></i> Observer Spacetime Coordinates
+                </span>
+                <span class="subsystem-pill pill-connected">GPS SYNC</span>
+            </div>
+            <div class="panel-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div>
+                    <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Observatory Site Name</label>
+                    <input type="text" id="setting-location-name" class="tech-input" value="Addis Ababa, Ethiopia">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div>
+                        <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Latitude (°N)</label>
+                        <input type="number" id="setting-latitude" class="tech-input font-mono" value="9.03" step="0.01">
+                    </div>
+                    <div>
+                        <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Longitude (°E)</label>
+                        <input type="number" id="setting-longitude" class="tech-input font-mono" value="38.74" step="0.01">
+                    </div>
+                </div>
+                <div>
+                    <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Observer Timezone</label>
+                    <input type="text" id="setting-timezone" class="tech-input font-mono" value="Africa/Addis_Ababa">
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

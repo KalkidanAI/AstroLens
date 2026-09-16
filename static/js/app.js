@@ -1,29 +1,111 @@
+/**
+ * AstroLens Core Application Engine & Real-Time Event Bus
+ * Manages global application state, authentication sessions,
+ * Server-Sent Events (SSE) telemetry stream, Stellarium Remote API polling,
+ * subsystem telemetry indicators, and mission logging.
+ */
+
 const AstroLens = {
-    // Base API URL
     apiUrl: '',
-    
-    // App state
+    sseEventSource: null,
+    telemetryListeners: [],
+    logListeners: [],
+
     state: {
         currentPage: '',
-        telescope: { connected: false, status: 'disconnected' },
-        ai: { ready: true, model: 'AstroLens YOLOv8 Engine', is_mock: false },
+        telescope: { connected: true, status: 'CONNECTED (MOCK)', is_mock: true, altitude: 48.1, azimuth: 72.4 },
+        ai: { ready: true, model: 'YOLOv8n Astronomy Weights', is_mock: true },
         stellarium: { connected: false, location: {}, view: {} },
+        camera: { connected: true, fps: 29.8, source: 'demo' },
         location: { name: 'Addis Ababa, Ethiopia', lat: 9.03, lon: 38.74 }
     },
-    
-    // Initialize app
+
     init() {
         this.setupNavigation();
-        this.setupMobileMenu();
         this.setupUserAuthUI();
-        this.updateClock();
-        setInterval(() => this.updateClock(), 1000);
+        this.updateClocks();
+        setInterval(() => this.updateClocks(), 1000);
+
         this.fetchStatus();
-        this.setupStellariumListeners();
-        
-        // Start polling Stellarium status every 2 seconds
+        this.initRealTimeSSE();
         this.pollStellariumStatus();
         setInterval(() => this.pollStellariumStatus(), 2000);
+    },
+
+    // Real-Time Server-Sent Events (SSE) Telemetry Stream
+    initRealTimeSSE() {
+        if (!window.EventSource) {
+            console.warn('SSE not supported, falling back to polling.');
+            setInterval(() => this.fetchStatus(), 2000);
+            return;
+        }
+
+        try {
+            this.sseEventSource = new EventSource('/api/stream/telemetry');
+
+            this.sseEventSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    this.handleRealTimeTelemetry(data);
+                } catch (e) {
+                    console.warn('SSE Parse error:', e);
+                }
+            };
+
+            this.sseEventSource.onerror = () => {
+                // If SSE disconnects, fall back to periodic fetch until reconnection
+                if (this.sseEventSource.readyState === EventSource.CLOSED) {
+                    setTimeout(() => this.initRealTimeSSE(), 5000);
+                }
+            };
+        } catch (err) {
+            console.warn('SSE Init error:', err);
+            setInterval(() => this.fetchStatus(), 2000);
+        }
+    },
+
+    handleRealTimeTelemetry(data) {
+        if (data.telescope) this.state.telescope = Object.assign(this.state.telescope, data.telescope);
+        if (data.camera) this.state.camera = Object.assign(this.state.camera, data.camera);
+        if (data.ai) this.state.ai = Object.assign(this.state.ai, data.ai);
+        if (data.stellarium) {
+            this.state.stellarium = Object.assign(this.state.stellarium, data.stellarium);
+            this.updateStellariumIndicators(data.stellarium);
+        }
+
+        this.updateGlobalIndicators();
+
+        // Broadcast to all registered telemetry listeners
+        this.telemetryListeners.forEach(listener => {
+            try { listener(this.state); } catch (e) { console.error(e); }
+        });
+    },
+
+    onTelemetry(callback) {
+        if (typeof callback === 'function') {
+            this.telemetryListeners.push(callback);
+        }
+    },
+
+    // Real-Time Mission Event Logger
+    logEvent(level, message, component = 'SYSTEM') {
+        const now = new Date();
+        const timeStr = now.toISOString().substring(11, 23);
+        const logEntry = { time: timeStr, level: level.toUpperCase(), message, component };
+
+        this.logListeners.forEach(listener => {
+            try { listener(logEntry); } catch (e) {}
+        });
+
+        // Dispatch DOM event
+        const event = new CustomEvent('astrolens:log', { detail: logEntry });
+        window.dispatchEvent(event);
+    },
+
+    onLog(callback) {
+        if (typeof callback === 'function') {
+            this.logListeners.push(callback);
+        }
     },
 
     // Session & Auth Helpers
@@ -54,8 +136,8 @@ const AstroLens = {
         }).finally(() => {
             localStorage.removeItem('astrolens_token');
             localStorage.removeItem('astrolens_user');
-            this.showToast('Logged out successfully', 'info');
-            setTimeout(() => window.location.href = '/', 500);
+            this.showToast('Mission session terminated. Logged out.', 'info');
+            setTimeout(() => window.location.href = '/', 600);
         });
     },
 
@@ -64,259 +146,163 @@ const AstroLens = {
         return user && user.role === 'admin';
     },
 
-    // Render logged in user profile badge in sidebar or header
     setupUserAuthUI() {
         const user = this.getUser();
-        const sidebar = document.getElementById('sidebar');
-        if (!sidebar) return;
-
-        let profileEl = document.getElementById('sidebar-user-profile');
-        if (!profileEl) {
-            profileEl = document.createElement('div');
-            profileEl.id = 'sidebar-user-profile';
-            profileEl.className = 'sidebar-user-profile';
-            // Insert before sidebar footer
-            const footer = sidebar.querySelector('.sidebar-footer');
-            if (footer) sidebar.insertBefore(profileEl, footer);
-            else sidebar.appendChild(profileEl);
-        }
+        const nameEl = document.getElementById('sidebar-username-text');
+        const roleEl = document.getElementById('sidebar-role-text');
+        const avatarEl = document.getElementById('sidebar-user-avatar');
 
         if (user) {
-            profileEl.innerHTML = `
-                <div class="user-card-inner">
-                    <div class="user-avatar">${user.username.charAt(0).toUpperCase()}</div>
-                    <div class="user-info">
-                        <div class="username-title">${user.username}</div>
-                        <span class="text-muted" style="font-size:0.7rem; display:block;">Active Session</span>
-                    </div>
-                    <button class="btn-logout-icon" title="Logout" onclick="AstroLens.logout()"><i class="fas fa-right-from-bracket"></i></button>
-                </div>
-            `;
+            if (nameEl) nameEl.textContent = user.username || 'Observer';
+            if (roleEl) roleEl.textContent = (user.role || 'OBSERVER').toUpperCase() + ' SESSION';
+            if (avatarEl && user.username) avatarEl.textContent = user.username.charAt(0).toUpperCase();
         } else {
-            profileEl.innerHTML = `
-                <div class="guest-auth-prompt">
-                    <span class="text-muted text-sm">Guest Observer</span>
-                    <div class="guest-buttons" style="margin-top:0.3rem; display:flex; gap:0.4rem;">
-                        <a href="/login" class="btn btn-outline btn-xs"><i class="fas fa-right-to-bracket"></i> Sign In</a>
-                        <a href="/signup" class="btn btn-primary btn-xs"><i class="fas fa-user-plus"></i> Join</a>
-                    </div>
-                </div>
-            `;
+            if (nameEl) nameEl.textContent = 'Guest Observer';
+            if (roleEl) roleEl.textContent = 'TELEMETRY ACCESS';
+            if (avatarEl) avatarEl.textContent = 'G';
         }
-    },
-    
-    // Navigation
-    setupNavigation() {
-        // Highlight active nav item based on current URL
-        const path = window.location.pathname;
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.classList.toggle('active', item.getAttribute('href') === path);
-        });
-    },
-    
-    // Mobile menu toggle
-    setupMobileMenu() {
-        const toggle = document.getElementById('menu-toggle');
-        const sidebar = document.querySelector('.sidebar');
-        if (toggle && sidebar) {
-            toggle.addEventListener('click', () => sidebar.classList.toggle('open'));
-            // Close on overlay click
-            document.addEventListener('click', (e) => {
-                if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== toggle) {
-                    sidebar.classList.remove('open');
-                }
-            });
-        }
-    },
-    
-    // Update clock display
-    updateClock() {
-        const el = document.getElementById('current-time');
-        if (el) {
-            const now = new Date();
-            el.textContent = now.toLocaleTimeString('en-US', { hour12: false });
-        }
-        const dateEl = document.getElementById('current-date');
-        if (dateEl) {
-            const now = new Date();
-            dateEl.textContent = now.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-        }
-    },
-    
-    // Fetch system status
-    async fetchStatus() {
-        try {
-            const res = await fetch('/api/status');
-            const data = await res.json();
-            this.state.telescope = data.telescope || this.state.telescope;
-            this.state.ai = data.ai || this.state.ai;
-            if (data.stellarium) this.state.stellarium = data.stellarium;
-            this.updateStatusIndicators();
-        } catch (err) {
-            console.error('Failed to fetch status:', err);
-        }
-    },
-    
-    // Update status dots in sidebar
-    updateStatusIndicators() {
-        const telDot = document.getElementById('telescope-status-dot');
-        const aiDot = document.getElementById('ai-status-dot');
-        const stelDot = document.getElementById('stellarium-status-dot');
-        
-        if (telDot) telDot.className = 'status-dot ' + (this.state.telescope.connected ? 'connected' : 'disconnected');
-        if (aiDot) aiDot.className = 'status-dot ' + (this.state.ai.ready ? 'ready' : 'not-ready');
-        if (stelDot) stelDot.className = 'status-dot ' + (this.state.stellarium.connected ? 'connected' : 'disconnected');
     },
 
-    // Poll Stellarium Remote Control Status (every 2 seconds)
+    setupNavigation() {
+        const path = window.location.pathname;
+        document.querySelectorAll('#sidebar-nav-list .nav-link').forEach(link => {
+            const href = link.getAttribute('href');
+            if (href === path) {
+                link.classList.add('active');
+            }
+        });
+    },
+
+    updateClocks() {
+        const now = new Date();
+        const utcStr = now.toISOString().substring(11, 19);
+        const localStr = now.toLocaleTimeString('en-US', { hour12: false });
+
+        const topUtc = document.getElementById('topbar-utc-clock');
+        if (topUtc) topUtc.textContent = utcStr;
+
+        const sideUtc = document.getElementById('sidebar-utc-clock');
+        if (sideUtc) sideUtc.textContent = utcStr;
+
+        const sideLocal = document.getElementById('sidebar-local-clock');
+        if (sideLocal) sideLocal.textContent = localStr;
+    },
+
+    async fetchStatus() {
+        try {
+            const data = await this.api('/api/status');
+            if (data.telescope) this.state.telescope = Object.assign(this.state.telescope, data.telescope);
+            if (data.ai) this.state.ai = Object.assign(this.state.ai, data.ai);
+            if (data.stellarium) this.state.stellarium = Object.assign(this.state.stellarium, data.stellarium);
+            if (data.location) this.state.location = Object.assign(this.state.location, data.location);
+            this.updateGlobalIndicators();
+        } catch (err) {
+            console.warn('Status fetch error:', err);
+        }
+    },
+
     async pollStellariumStatus() {
         try {
             const res = await fetch('/api/stellarium/status');
             const data = await res.json();
             this.state.stellarium = data;
-            this.updateStellariumUI(data);
+            this.updateStellariumIndicators(data);
         } catch (err) {
-            this.state.stellarium = { connected: false, error: 'Stellarium API unreachable' };
-            this.updateStellariumUI(this.state.stellarium);
+            this.state.stellarium = { connected: false };
+            this.updateStellariumIndicators({ connected: false });
         }
     },
 
-    // Update Stellarium status card & badges
-    updateStellariumUI(data) {
+    updateStellariumIndicators(data) {
         const isConnected = data.connected === true;
-        
-        // Sidebar dot
-        const stelDot = document.getElementById('stellarium-status-dot');
-        if (stelDot) stelDot.className = 'status-dot ' + (isConnected ? 'connected' : 'disconnected');
-        
-        // Badge
-        const badge = document.getElementById('stellarium-badge');
-        if (badge) {
-            badge.className = 'status-badge ' + (isConnected ? 'badge-success' : 'badge-danger');
-            badge.textContent = isConnected ? '🟢 Stellarium Connected' : '🔴 Stellarium Offline';
-        }
-        
-        // Connection text
-        const connText = document.getElementById('stellarium-conn-text');
-        if (connText) {
-            connText.className = isConnected ? 'text-success' : 'text-danger';
-            connText.textContent = isConnected ? 'Connected (localhost:8090)' : 'Offline';
+
+        const sidePill = document.getElementById('sidebar-stellarium-pill');
+        if (sidePill) {
+            sidePill.className = 'subsystem-pill ' + (isConnected ? 'pill-connected' : 'pill-disconnected');
+            sidePill.textContent = isConnected ? 'CONNECTED' : 'OFFLINE';
         }
 
-        // Details
-        const locEl = document.getElementById('stellarium-loc');
-        const timeEl = document.getElementById('stellarium-time');
-        const fovEl = document.getElementById('stellarium-fov');
-        const selEl = document.getElementById('stellarium-selected');
-        const helpEl = document.getElementById('stellarium-help-text');
+        const topPill = document.getElementById('topbar-stel-indicator');
+        if (topPill) {
+            topPill.className = 'topbar-conn-pill ' + (isConnected ? 'pill-connected' : 'pill-disconnected');
+            topPill.textContent = 'STEL ● ' + (isConnected ? 'CONNECTED' : 'OFFLINE');
+        }
 
-        if (isConnected) {
-            if (locEl) locEl.textContent = data.location?.name || 'Connected';
-            if (timeEl) timeEl.textContent = data.time?.local ? data.time.local.split('T')[1] || data.time.local : 'Live';
-            if (fovEl) fovEl.textContent = data.view?.fov ? parseFloat(data.view.fov).toFixed(1) + '°' : '--';
-            if (selEl) {
-                const sel = data.selected_object;
-                selEl.textContent = sel ? (sel.length > 30 ? sel.substring(0, 30) + '...' : sel) : 'None';
+        const selectedEl = document.getElementById('dash-stel-selected');
+        if (selectedEl) {
+            selectedEl.textContent = isConnected && data.selected_object ? data.selected_object : 'None';
+        }
+    },
+
+    updateGlobalIndicators() {
+        const tel = this.state.telescope;
+        const isConnected = tel.connected === true;
+        const isMock = tel.is_mock !== false;
+
+        const sideTel = document.getElementById('sidebar-telescope-pill');
+        if (sideTel) {
+            if (!isConnected) {
+                sideTel.className = 'subsystem-pill pill-disconnected';
+                sideTel.textContent = 'DISCONNECTED';
+            } else if (isMock) {
+                sideTel.className = 'subsystem-pill pill-mock';
+                sideTel.textContent = 'MOCK ACTIVE';
+            } else {
+                sideTel.className = 'subsystem-pill pill-connected';
+                sideTel.textContent = 'HARDWARE SYNC';
             }
-            if (helpEl) helpEl.textContent = 'Stellarium Remote Control API active on port 8090';
-        } else {
-            if (locEl) locEl.textContent = '--';
-            if (timeEl) timeEl.textContent = '--';
-            if (fovEl) fovEl.textContent = '--';
-            if (selEl) selEl.textContent = 'None';
-            if (helpEl) helpEl.textContent = 'Start Stellarium desktop application and enable Remote Control plugin on port 8090.';
         }
     },
 
-    // Stellarium UI Listeners
-    setupStellariumListeners() {
-        const testBtn = document.getElementById('test-stellarium-btn');
-        if (testBtn) {
-            testBtn.addEventListener('click', () => this.testStellariumConnection());
-        }
-
-        const searchBtn = document.getElementById('stellarium-search-btn');
-        const searchInput = document.getElementById('stellarium-search-input');
-        if (searchBtn && searchInput) {
-            searchBtn.addEventListener('click', () => this.searchStellarium(searchInput.value));
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') this.searchStellarium(searchInput.value);
-            });
-        }
-    },
-
-    // Test Stellarium Connection button handler
     async testStellariumConnection() {
-        const testBtn = document.getElementById('test-stellarium-btn');
-        if (testBtn) {
-            testBtn.disabled = true;
-            testBtn.textContent = 'Testing...';
-        }
-
         try {
+            this.showToast('Pinging Stellarium Remote Control at 127.0.0.1:8090...', 'info');
+            this.logEvent('INFO', 'Testing connection to Stellarium Remote Control port 8090', 'STELLARIUM');
             const res = await fetch('/api/stellarium/test', { method: 'POST' });
             const data = await res.json();
-            
+
             if (res.ok && data.connected) {
                 this.showToast('✓ ' + data.message, 'success', 5000);
+                this.logEvent('SUCCESS', 'Connected to Stellarium Remote Control API', 'STELLARIUM');
             } else {
-                this.showToast('✕ ' + (data.message || data.error || 'Stellarium Offline'), 'error', 5000);
+                this.showToast('✕ Stellarium Offline. Enable Remote Control plugin on port 8090.', 'error', 6000);
+                this.logEvent('WARN', 'Stellarium port 8090 unreachable', 'STELLARIUM');
             }
             this.pollStellariumStatus();
         } catch (err) {
-            this.showToast('✕ Connection Test Error: ' + err.message, 'error', 5000);
-        } finally {
-            if (testBtn) {
-                testBtn.disabled = false;
-                testBtn.textContent = 'Test Connection';
-            }
+            this.showToast('Connection test error: ' + err.message, 'error');
         }
     },
 
-    // Search object in Stellarium
     async searchStellarium(query) {
         if (!query || !query.trim()) {
-            this.showToast('Please enter an object name to search', 'warning');
+            this.showToast('Enter a celestial object name to search in Stellarium', 'warning');
             return;
         }
 
-        const resultsContainer = document.getElementById('stellarium-search-results');
-        if (resultsContainer) resultsContainer.innerHTML = '<span class="text-muted" style="font-size:0.8rem;">Searching Stellarium...</span>';
-
         try {
+            this.showToast(`Searching Stellarium catalog for "${query}"...`, 'info');
+            this.logEvent('QUERY', `Stellarium find query: ${query}`, 'STELLARIUM');
             const res = await fetch(`/api/stellarium/find?name=${encodeURIComponent(query.trim())}`);
             const data = await res.json();
 
             if (!res.ok || data.error) {
-                if (resultsContainer) resultsContainer.innerHTML = `<span class="text-danger" style="font-size:0.8rem;">${data.error || 'Search failed'}</span>`;
+                this.showToast(data.error || 'Object not found in Stellarium', 'warning');
                 return;
             }
 
             const results = Array.isArray(data) ? data : [data];
-            if (results.length === 0 || (results.length === 1 && !results[0])) {
-                if (resultsContainer) resultsContainer.innerHTML = '<span class="text-muted" style="font-size:0.8rem;">No matching objects found in Stellarium</span>';
-                return;
-            }
-
-            if (resultsContainer) {
-                resultsContainer.innerHTML = results.slice(0, 5).map(item => {
-                    const name = typeof item === 'string' ? item : item.name || item;
-                    return `
-                        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-input); padding:0.4rem 0.6rem; border-radius:4px; margin-bottom:0.3rem;">
-                            <span style="font-weight:500;">${name}</span>
-                            <button class="btn btn-sm btn-primary" onclick="AstroLens.focusStellarium('${name.replace(/'/g, "\\'")}')">VIEW / FOCUS</button>
-                        </div>
-                    `;
-                }).join('');
-            }
+            const firstName = typeof results[0] === 'string' ? results[0] : (results[0]?.name || query);
+            this.focusStellarium(firstName);
         } catch (err) {
-            if (resultsContainer) resultsContainer.innerHTML = `<span class="text-danger" style="font-size:0.8rem;">Error: ${err.message}</span>`;
+            this.showToast('Search error: ' + err.message, 'error');
         }
     },
 
-    // Focus / Center object in Stellarium
     async focusStellarium(name) {
         try {
+            this.showToast(`Commanding Stellarium to lock and zoom to ${name}...`, 'info');
+            this.logEvent('COMMAND', `Focus and zoom command sent for ${name}`, 'STELLARIUM');
             const res = await fetch('/api/stellarium/focus', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -325,101 +311,67 @@ const AstroLens = {
             const data = await res.json();
 
             if (res.ok && data.success) {
-                this.showToast(`Focused on ${name} in Stellarium!`, 'success');
-                this.fetchStellariumObjectInfo(name);
+                this.showToast(`✓ Stellarium viewport locked on ${name}!`, 'success');
+                this.logEvent('SUCCESS', `Stellarium locked on ${name}`, 'STELLARIUM');
                 this.pollStellariumStatus();
             } else {
-                this.showToast(`Failed to focus ${name}: ${data.error || 'Stellarium API error'}`, 'error');
+                this.showToast(`Stellarium focus notice: ${data.error || 'Make sure Stellarium is running.'}`, 'warning');
             }
         } catch (err) {
-            this.showToast(`Focus error: ${err.message}`, 'error');
+            this.showToast('Focus command failed: ' + err.message, 'error');
         }
     },
 
-    // Fetch and render detailed object info from Stellarium
-    async fetchStellariumObjectInfo(name) {
-        const infoContainer = document.getElementById('stellarium-object-info');
-        if (!infoContainer) return;
-
-        try {
-            const res = await fetch(`/api/stellarium/object?name=${encodeURIComponent(name)}`);
-            const data = await res.json();
-
-            if (res.ok && data && !data.error) {
-                infoContainer.style.display = 'block';
-                infoContainer.innerHTML = `
-                    <div style="font-weight:600; color:var(--secondary); margin-bottom:0.3rem;">${data.name || name} (${data.type || 'Object'})</div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.3rem; font-size:0.8rem;" class="text-muted">
-                        <div>Magnitude: <span class="text-primary">${data.magnitude != null ? parseFloat(data.magnitude).toFixed(2) : '--'}</span></div>
-                        <div>Distance: <span class="text-primary">${data.distance ? parseFloat(data.distance).toFixed(2) + ' AU' : '--'}</span></div>
-                        <div>Altitude: <span class="text-primary">${data.altitude != null ? parseFloat(data.altitude).toFixed(1) + '°' : '--'}</span></div>
-                        <div>Azimuth: <span class="text-primary">${data.azimuth != null ? parseFloat(data.azimuth).toFixed(1) + '°' : '--'}</span></div>
-                    </div>
-                `;
-            }
-        } catch (err) {
-            console.error('Failed to fetch object info:', err);
-        }
-    },
-    
-    // API helper
+    // Central API Helper
     async api(endpoint, options = {}) {
         try {
             const token = this.getToken();
-            const headers = { 
-                'Content-Type': 'application/json', 
+            const headers = {
+                'Content-Type': 'application/json',
                 ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-                ...options.headers 
+                ...options.headers
             };
             const res = await fetch(this.apiUrl + endpoint, {
                 ...options,
                 headers
             });
-            if (!res.ok) throw new Error(`API error: ${res.status}`);
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || `HTTP ${res.status}`);
+            }
             return await res.json();
         } catch (err) {
-            console.error(`API call failed: ${endpoint}`, err);
-            this.showToast(err.message, 'error');
+            console.error(`API Call Error (${endpoint}):`, err);
             throw err;
         }
     },
-    
-    // Toast notification
+
+    // Scientific Toast Notifications
     showToast(message, type = 'info', duration = 4000) {
         const container = document.getElementById('toast-container') || this.createToastContainer();
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
+
+        const icon = type === 'success' ? 'fa-check' : (type === 'error' ? 'fa-circle-xmark' : (type === 'warning' ? 'fa-triangle-exclamation' : 'fa-info'));
         toast.innerHTML = `
-            <span class="toast-icon">${type === 'success' ? '✓' : type === 'error' ? '✕' : type === 'warning' ? '⚠' : 'ℹ'}</span>
-            <span class="toast-message">${message}</span>
+            <i class="fas ${icon}" style="font-size: 0.9rem;"></i>
+            <span style="flex: 1; font-weight: 500;">${message}</span>
         `;
         container.appendChild(toast);
-        setTimeout(() => toast.classList.add('show'), 10);
+
+        setTimeout(() => toast.classList.add('show'), 15);
         setTimeout(() => {
             toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
+            setTimeout(() => toast.remove(), 250);
         }, duration);
     },
-    
+
     createToastContainer() {
         const container = document.createElement('div');
         container.id = 'toast-container';
         document.body.appendChild(container);
         return container;
-    },
-    
-    // Format date/time
-    formatDateTime(isoString) {
-        const d = new Date(isoString);
-        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' + 
-               d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    },
-    
-    formatTime(isoString) {
-        return new Date(isoString).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     }
 };
 
-// Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => AstroLens.init());
-

@@ -1,55 +1,80 @@
 {% extends "base.html" %}
 
 {% block title %}Observation History | AstroLens Logs{% endblock %}
+{% block page_name %}OBSERVATION HISTORY LOGS{% endblock %}
 
 {% block content %}
-<!-- PAGE HEADER -->
-<div class="flex flex-col md:flex-row md:items-center justify-between pb-6 mb-6 border-b border-neutral-800/80 gap-4">
-    <div>
-        <h1 class="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
-            <span>Observation History</span>
-            <span class="text-xs px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-mono font-semibold">LOGS</span>
-        </h1>
-        <p class="text-xs text-neutral-400 mt-1">Complete record of AI-classified celestial observations and telescope telemetry</p>
+<div class="history-root" style="display: flex; flex-direction: column; gap: 1.25rem;">
+    <!-- HEADER -->
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle);">
+        <div>
+            <h1 class="page-title">
+                <span>Astronomical Observation Records</span>
+                <span class="subsystem-pill pill-connected" style="font-size: 0.7rem;">DATABASE ACTIVE</span>
+            </h1>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
+                Historical catalog of AI-classified celestial discoveries, multi-signal verification scores, and observer telemetry logs.
+            </p>
+        </div>
+
+        <button class="btn-tech btn-tech-outline" onclick="HistoryView.fetchHistory()">
+            <i class="fas fa-rotate"></i> Refresh Database
+        </button>
+    </div>
+
+    <!-- FILTER & SEARCH BAR -->
+    <div class="instrument-panel" style="padding: 0.85rem 1.25rem; display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center;">
+        <div style="display: flex; gap: 0.65rem; align-items: center; flex: 1; max-width: 420px;">
+            <i class="fas fa-magnifying-glass" style="color: var(--text-dim); font-size: 0.85rem;"></i>
+            <input type="text" id="history-search" class="tech-input" placeholder="Filter by target name, category, or telemetry notes..." style="font-size: 0.8rem;">
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <span class="label-tech" style="font-size: 0.68rem;">SORT BY:</span>
+            <select id="history-sort" class="tech-select" style="width: auto; font-size: 0.78rem;">
+                <option value="newest">Timestamp (Newest First)</option>
+                <option value="oldest">Timestamp (Oldest First)</option>
+                <option value="confidence">AI Confidence (Highest)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- OBSERVATION HISTORY TABLE -->
+    <div class="instrument-panel" style="padding: 0; overflow-x: auto;">
+        <table class="tech-table">
+            <thead>
+                <tr>
+                    <th>Time (UTC)</th>
+                    <th>Celestial Object</th>
+                    <th>Classification</th>
+                    <th>AI Confidence</th>
+                    <th>Position Match</th>
+                    <th>Verification</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="history-list">
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 3rem;">Loading discovery records...</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </div>
 
-<div class="space-y-6">
-    <!-- SEARCH & SORT BAR -->
-    <div class="p-4 bg-neutral-950 rounded-2xl border border-neutral-800/80 flex flex-col md:flex-row gap-4 justify-between items-center">
-        <div class="relative w-full md:w-80">
-            <i class="fas fa-magnifying-glass absolute left-3.5 top-3 text-xs text-neutral-500"></i>
-            <input type="text" id="history-search" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-sky-500" placeholder="Search observations (e.g., Jupiter, Saturn)...">
+<!-- OBSERVATION DETAIL DRAWER -->
+<div id="observation-modal" class="tech-drawer">
+    <div class="drawer-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-file-waveform text-cyan"></i>
+            <span class="panel-header-title" id="modal-title">Observation Record</span>
         </div>
-
-        <select id="history-sort" class="w-full md:w-48 bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-            <option value="confidence">Highest Confidence</option>
-        </select>
+        <button class="btn-tech btn-tech-outline" onclick="HistoryView.closeDetail()" style="padding: 0.25rem 0.5rem;">
+            <i class="fas fa-xmark"></i>
+        </button>
     </div>
-
-    <!-- HISTORY LIST CONTAINER -->
-    <div class="space-y-3" id="history-list">
-        <div class="p-12 text-center text-neutral-500 space-y-3 bg-neutral-950 rounded-2xl border border-neutral-800/80">
-            <i class="fas fa-spinner fa-spin text-2xl text-sky-400"></i>
-            <p class="text-xs font-medium text-neutral-400">Loading observation logs...</p>
-        </div>
-    </div>
-
-    <!-- DETAIL MODAL -->
-    <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" id="observation-modal" style="display:none;">
-        <div class="bg-neutral-950 border border-neutral-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
-            <div class="flex items-center justify-between pb-3 border-b border-neutral-800">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2" id="modal-title">
-                    <i class="fas fa-file-waveform text-sky-400"></i> Observation Details
-                </h3>
-                <button class="text-neutral-400 hover:text-white p-1 text-sm" onclick="document.getElementById('observation-modal').style.display='none'">
-                    <i class="fas fa-xmark"></i>
-                </button>
-            </div>
-            <div id="modal-body" class="space-y-3 text-xs"></div>
-        </div>
+    <div class="drawer-body" id="modal-body">
+        <!-- Injected via JavaScript -->
     </div>
 </div>
 {% endblock %}
