@@ -78,9 +78,6 @@ app = Flask(__name__,
             static_folder=static_folder)
 CORS(app)
 
-# Vercel WSGI / Serverless handler
-handler = app
-
 # Initialize services with safe error capture for resilient deployment
 init_error = None
 try:
