@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AstroLens — AI-Powered Intelligent Astronomical Observation Platform. From Telescope Data to Verified Discovery.">
+    <title>{% block title %}AstroLens — AI Observatory Mission Control{% endblock %}</title>
+
+    <!-- Google Fonts: Technical Sans & Telemetry Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- AstroLens Space-Tech Design System -->
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div id="toast-container"></div>
+    <div id="drawer-backdrop" class="drawer-backdrop"></div>
+
+    <div class="app-layout">
+        <!-- ============================================================
+             LEFT SIDEBAR (256px) - MISSION CONTROL NAVIGATION & TELEMETRY
+             ============================================================ -->
+        <aside class="tech-sidebar" id="sidebar">
+            <!-- Brand Header -->
+            <div class="sidebar-header">
+                <a href="/" class="brand-row" aria-label="AstroLens Home">
+                    <div class="brand-emblem">AL</div>
+                    <div>
+                        <div class="brand-name">ASTRO<span>LENS</span></div>
+                    </div>
+                </a>
+                <div class="brand-tagline">From Data to Verified Discovery</div>
+            </div>
+
+            <!-- Observer Profile Badge -->
+            <div class="sidebar-user" id="sidebar-user-container">
+                <div class="sidebar-avatar" id="sidebar-user-avatar">O</div>
+                <div class="sidebar-user-meta">
+                    <div class="sidebar-user-name" id="sidebar-username-text">Observer</div>
+                    <div class="sidebar-user-role" id="sidebar-role-text">OBSERVER SESSION</div>
+                </div>
+                <button onclick="AstroLens.logout()" class="btn-sidebar-logout" title="End Mission Session">
+                    <i class="fas fa-arrow-right-from-bracket"></i>
+                </button>
+            </div>
+
+            <!-- Primary Navigation Links -->
+            <nav class="sidebar-nav" id="sidebar-nav-list">
+                <div class="nav-section-label">Mission Control</div>
+                <a href="/dashboard" class="nav-link" data-page="dashboard">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Overview</span>
+                </a>
+                <a href="/observatory" class="nav-link" data-page="observatory">
+                    <i class="fas fa-tower-observation"></i>
+                    <span>Observatory</span>
+                </a>
+                <a href="/sky" class="nav-link" data-page="sky">
+                    <i class="fas fa-compass"></i>
+                    <span>Sky Map</span>
+                </a>
+
+                <div class="nav-section-label">Instruments</div>
+                <a href="/observatory#telescope" class="nav-link" data-page="telescope">
+                    <i class="fas fa-satellite-dish"></i>
+                    <span>Telescope</span>
+                </a>
+                <a href="/observatory#camera" class="nav-link" data-page="camera">
+                    <i class="fas fa-video"></i>
+                    <span>Camera</span>
+                </a>
+                <a href="/observatory#ai" class="nav-link" data-page="ai">
+                    <i class="fas fa-microchip"></i>
+                    <span>AI Detection</span>
+                </a>
+                <a href="/observatory#verification" class="nav-link" data-page="verification">
+                    <i class="fas fa-certificate"></i>
+                    <span>Verification</span>
+                </a>
+
+                <div class="nav-section-label">Ephemeris & Config</div>
+                <a href="/history" class="nav-link" data-page="history">
+                    <i class="fas fa-clock-rotate-left"></i>
+                    <span>Observations</span>
+                </a>
+                <a href="/settings" class="nav-link" data-page="settings">
+                    <i class="fas fa-sliders"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <!-- Bottom Subsystem Status Panel -->
+            <div class="sidebar-status-footer">
+                <div class="status-footer-heading">Subsystem Telemetry</div>
+                
+                <div class="subsystem-row">
+                    <span class="subsystem-label">
+                        <i class="fas fa-globe text-cyan"></i> Stellarium
+                    </span>
+                    <span class="subsystem-pill pill-disconnected" id="sidebar-stellarium-pill">OFFLINE</span>
+                </div>
+                
+                <div class="subsystem-row">
+                    <span class="subsystem-label">
+                        <i class="fas fa-crosshairs"></i> Telescope
+                    </span>
+                    <span class="subsystem-pill pill-mock" id="sidebar-telescope-pill">MOCK ACTIVE</span>
+                </div>
+                
+                <div class="subsystem-row">
+                    <span class="subsystem-label">
+                        <i class="fas fa-camera"></i> Camera
+                    </span>
+                    <span class="subsystem-pill pill-connected" id="sidebar-camera-pill">READY</span>
+                </div>
+                
+                <div class="subsystem-row">
+                    <span class="subsystem-label">
+                        <i class="fas fa-brain"></i> AI Model
+                    </span>
+                    <span class="subsystem-pill pill-connected" id="sidebar-ai-pill">YOLO READY</span>
+                </div>
+
+                <div class="sidebar-clock-row">
+                    <span>UTC <strong id="sidebar-utc-clock" class="text-secondary">--:--:--</strong></span>
+                    <span id="sidebar-local-clock">--:--:--</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ============================================================
+             MAIN WORKSPACE STAGE & TOP STATUS BAR
+             ============================================================ -->
+        <div class="main-stage">
+            <!-- TOP STATUS BAR -->
+            <header class="tech-topbar">
+                <!-- Left: Breadcrumb & Mobile Menu Toggle -->
+                <div class="topbar-left">
+                    <button class="btn-tech btn-tech-outline d-lg-none" id="mobile-menu-toggle" style="padding: 0.3rem 0.55rem;" aria-label="Toggle Navigation Menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="page-badge" id="topbar-page-name">
+                        ASTROLENS // {% block page_name %}OVERVIEW{% endblock %}
+                    </div>
+                </div>
+
+                <!-- Center: Active Observation Target -->
+                <div class="topbar-center">
+                    <div class="observation-active-banner" id="topbar-target-banner">
+                        <div class="observation-pulse-dot"></div>
+                        <span>TARGET: <strong id="topbar-target-name">JUPITER</strong></span>
+                        <span style="color: var(--text-dim);">|</span>
+                        <span id="topbar-target-mag">MAG -2.31</span>
+                        <span style="color: var(--text-dim);">|</span>
+                        <span style="color: var(--emerald-accent);">VISIBLE</span>
+                    </div>
+                </div>
+
+                <!-- Right: UTC Clock, Location, Subsystem Pills -->
+                <div class="topbar-right">
+                    <!-- UTC Timestamp -->
+                    <div class="telemetry-chip d-none-sm">
+                        <span class="label">UTC</span>
+                        <strong id="topbar-utc-clock">--:--:--</strong>
+                    </div>
+
+                    <!-- Observer Coordinates -->
+                    <div class="telemetry-chip d-none-md">
+                        <i class="fas fa-location-dot" style="color: var(--cyan-accent); font-size: 0.7rem;"></i>
+                        <span id="topbar-location-name">Addis Ababa</span>
+                    </div>
+
+                    <!-- Compact Subsystem Indicators -->
+                    <div class="connection-pills-cluster">
+                        <span class="topbar-conn-pill pill-disconnected" id="topbar-stel-indicator" title="Stellarium Remote API">
+                            STEL ● OFFLINE
+                        </span>
+                        <span class="topbar-conn-pill pill-mock" id="topbar-tel-indicator" title="Telescope Mount Driver">
+                            TEL ● MOCK
+                        </span>
+                        <span class="topbar-conn-pill pill-connected" id="topbar-ai-indicator" title="YOLO Detection Engine">
+                            AI ● READY
+                        </span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content Area -->
+            <main class="workspace-content">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Core App JS -->
+    <script src="/static/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Highlight active nav item
+            var currentPath = window.location.pathname;
+            var currentHash = window.location.hash;
+            var navItems = document.querySelectorAll('#sidebar-nav-list .nav-link');
+            
+            navItems.forEach(function(item) {
+                var href = item.getAttribute('href');
+                if (href === currentPath || (href.indexOf('#') > -1 && href.split('#')[0] === currentPath && href.split('#')[1] === currentHash.replace('#',''))) {
+                    item.classList.add('active');
+                } else if (href === currentPath) {
+                    item.classList.add('active');
+                }
+            });
+
+            // Mobile toggle
+            var toggle = document.getElementById('mobile-menu-toggle');
+            var sidebar = document.getElementById('sidebar');
+            var backdrop = document.getElementById('drawer-backdrop');
+
+            if (toggle && sidebar) {
+                toggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('open');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+            }
+            if (backdrop && sidebar) {
+                backdrop.addEventListener('click', function() {
+                    sidebar.classList.remove('open');
+                    backdrop.classList.remove('active');
+                });
+            }
+
+            // User Info Setup
+            var user = AstroLens.getUser();
+            if (user) {
+                var nameEl = document.getElementById('sidebar-username-text');
+                var roleEl = document.getElementById('sidebar-role-text');
+                var avatarEl = document.getElementById('sidebar-user-avatar');
+                if (nameEl) nameEl.textContent = user.username || 'Observer';
+                if (roleEl) roleEl.textContent = (user.role || 'OBSERVER').toUpperCase() + ' SESSION';
+                if (avatarEl && user.username) avatarEl.textContent = user.username.charAt(0).toUpperCase();
+            }
+        });
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

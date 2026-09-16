@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Interactive Sky Map | AstroLens — Ephemeris Chart{% endblock %}
+{% block page_name %}INTERACTIVE SKY MAP{% endblock %}
+
+{% block content %}
+<div class="skymap-root" style="display: flex; flex-direction: column; gap: 1.25rem;">
+    <!-- HEADER -->
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle);">
+        <div>
+            <h1 class="page-title">
+                <span>Interactive Celestial Ephemeris Chart</span>
+                <span class="subsystem-pill pill-connected" style="font-size: 0.7rem;">POLAR PROJECTION</span>
+            </h1>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
+                Real-time polar sky projection for <strong style="color: #ffffff;" id="sky-location-name">Addis Ababa (9.03°N, 38.74°E)</strong> • Local Sidereal Time: <strong class="font-mono" style="color: var(--cyan-accent);" id="sky-sidereal-time">--:--:--</strong>
+            </p>
+        </div>
+
+        <!-- Controls Cluster -->
+        <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+            <button class="btn-tech btn-tech-outline" onclick="SkyMap.zoomIn()" title="Zoom In Chart">
+                <i class="fas fa-plus"></i> Zoom +
+            </button>
+            <button class="btn-tech btn-tech-outline" onclick="SkyMap.zoomOut()" title="Zoom Out Chart">
+                <i class="fas fa-minus"></i> Zoom -
+            </button>
+            <button class="btn-tech btn-tech-outline" onclick="SkyMap.centerZenith()" title="Center on Zenith">
+                <i class="fas fa-crosshairs"></i> Center
+            </button>
+            <button class="btn-tech btn-tech-outline" id="btn-track-mount" onclick="SkyMap.toggleTrackMount()" title="Track Telescope Mount Pointing">
+                <i class="fas fa-satellite-dish text-cyan"></i> Track Mount
+            </button>
+            <button class="btn-tech btn-tech-outline" id="btn-night-mode" onclick="SkyMap.toggleNightMode()" title="Toggle Red Night Vision Preservation Mode">
+                <i class="fas fa-eye text-ruby"></i> Night Mode
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN GRID: SKY CANVAS & OBJECT INSPECTION -->
+    <div style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 1.25rem; align-items: start;" class="skymap-main-grid">
+        
+        <!-- CANVAS CONTAINER WITH CARDINAL DIRECTIONS -->
+        <div class="instrument-panel with-corner-markers" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.25rem; background: #03060c;" id="sky-canvas-panel">
+            <div style="width: 100%; max-width: 620px; aspect-ratio: 1 / 1; position: relative; display: flex; align-items: center; justify-content: center;">
+                <canvas id="sky-canvas" width="700" height="700" style="width: 100%; height: 100%; object-fit: contain; cursor: crosshair;"></canvas>
+            </div>
+
+            <!-- Legend Overlay -->
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; padding: 0.5rem 0.9rem; background: var(--bg-panel); border: 1px solid var(--border-panel); border-radius: var(--radius-sm); font-size: 0.73rem; color: var(--text-secondary);">
+                <span style="display: flex; align-items: center; gap: 0.35rem;">
+                    <span style="width: 7px; height: 7px; border-radius: 50%; background: #f4d09e; box-shadow: 0 0 5px #f4d09e;"></span> Planet
+                </span>
+                <span style="display: flex; align-items: center; gap: 0.35rem;">
+                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #ffffff;"></span> Star
+                </span>
+                <span style="display: flex; align-items: center; gap: 0.35rem;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #e8e8e0;"></span> Moon
+                </span>
+                <span style="display: flex; align-items: center; gap: 0.35rem;">
+                    <span style="width: 7px; height: 7px; border-radius: 50%; background: #a29bfe;"></span> Deep Sky Object
+                </span>
+                <span style="display: flex; align-items: center; gap: 0.35rem;">
+                    <span style="width: 8px; height: 8px; border: 1px dashed var(--cyan-accent); border-radius: 50%;"></span> Telescope Pointing
+                </span>
+            </div>
+        </div>
+
+        <!-- TARGET INFORMATION PANEL -->
+        <div class="instrument-panel" id="sky-info">
+            <div class="panel-header">
+                <span class="panel-header-title">
+                    <i class="fas fa-satellite text-cyan"></i> Target Ephemeris & Specs
+                </span>
+                <span class="subsystem-pill pill-connected" id="sky-obj-status-badge">SELECT TARGET</span>
+            </div>
+
+            <div class="panel-body" id="sky-info-body" style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <div style="text-align: center; color: var(--text-dim); padding: 3rem 1rem;">
+                    <i class="fas fa-crosshairs" style="font-size: 2rem; color: var(--cyan-accent); opacity: 0.4; margin-bottom: 0.75rem;"></i>
+                    <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">No Target Selected</div>
+                    <div style="font-size: 0.75rem; margin-top: 0.25rem;">Click any planet or star on the celestial chart to inspect ephemeris coordinates and physical properties.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/sky-map.js"></script>
+{% endblock %}

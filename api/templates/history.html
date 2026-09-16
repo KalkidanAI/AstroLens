@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Observation History | AstroLens Logs{% endblock %}
+{% block page_name %}OBSERVATION HISTORY LOGS{% endblock %}
+
+{% block content %}
+<div class="history-root" style="display: flex; flex-direction: column; gap: 1.25rem;">
+    <!-- HEADER -->
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle);">
+        <div>
+            <h1 class="page-title">
+                <span>Astronomical Observation Records</span>
+                <span class="subsystem-pill pill-connected" style="font-size: 0.7rem;">DATABASE ACTIVE</span>
+            </h1>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
+                Historical catalog of AI-classified celestial discoveries, multi-signal verification scores, and observer telemetry logs.
+            </p>
+        </div>
+
+        <button class="btn-tech btn-tech-outline" onclick="HistoryView.fetchHistory()">
+            <i class="fas fa-rotate"></i> Refresh Database
+        </button>
+    </div>
+
+    <!-- FILTER & SEARCH BAR -->
+    <div class="instrument-panel" style="padding: 0.85rem 1.25rem; display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center;">
+        <div style="display: flex; gap: 0.65rem; align-items: center; flex: 1; max-width: 420px;">
+            <i class="fas fa-magnifying-glass" style="color: var(--text-dim); font-size: 0.85rem;"></i>
+            <input type="text" id="history-search" class="tech-input" placeholder="Filter by target name, category, or telemetry notes..." style="font-size: 0.8rem;">
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <span class="label-tech" style="font-size: 0.68rem;">SORT BY:</span>
+            <select id="history-sort" class="tech-select" style="width: auto; font-size: 0.78rem;">
+                <option value="newest">Timestamp (Newest First)</option>
+                <option value="oldest">Timestamp (Oldest First)</option>
+                <option value="confidence">AI Confidence (Highest)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- OBSERVATION HISTORY TABLE -->
+    <div class="instrument-panel" style="padding: 0; overflow-x: auto;">
+        <table class="tech-table">
+            <thead>
+                <tr>
+                    <th>Time (UTC)</th>
+                    <th>Celestial Object</th>
+                    <th>Classification</th>
+                    <th>AI Confidence</th>
+                    <th>Position Match</th>
+                    <th>Verification</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="history-list">
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 3rem;">Loading discovery records...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- OBSERVATION DETAIL DRAWER -->
+<div id="observation-modal" class="tech-drawer">
+    <div class="drawer-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-file-waveform text-cyan"></i>
+            <span class="panel-header-title" id="modal-title">Observation Record</span>
+        </div>
+        <button class="btn-tech btn-tech-outline" onclick="HistoryView.closeDetail()" style="padding: 0.25rem 0.5rem;">
+            <i class="fas fa-xmark"></i>
+        </button>
+    </div>
+    <div class="drawer-body" id="modal-body">
+        <!-- Injected via JavaScript -->
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/history.js"></script>
+{% endblock %}

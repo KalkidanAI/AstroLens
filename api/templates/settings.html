@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Instrument Settings | AstroLens Configuration{% endblock %}
+{% block page_name %}INSTRUMENT SETTINGS & CALIBRATION{% endblock %}
+
+{% block content %}
+<div class="settings-root" style="display: flex; flex-direction: column; gap: 1.25rem; max-width: 1080px;">
+    <!-- HEADER -->
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle);">
+        <div>
+            <h1 class="page-title">
+                <span>Observatory & Hardware Configuration</span>
+                <span class="subsystem-pill pill-connected" style="font-size: 0.7rem;">CALIBRATED</span>
+            </h1>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
+                Configure hardware drivers, Stellarium Remote API bridge, AI classification thresholds, and multi-signal verification weights.
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem;">
+            <button class="btn-tech btn-tech-outline" id="reset-settings">
+                Reset Defaults
+            </button>
+            <button class="btn-tech btn-tech-primary" id="save-settings">
+                <i class="fas fa-floppy-disk"></i> Save Configuration
+            </button>
+        </div>
+    </div>
+
+    <!-- TECHNICAL SETTINGS GRID (2 COLUMNS) -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;" class="settings-grid">
+        
+        <!-- 1. STELLARIUM CONFIGURATION -->
+        <div class="instrument-panel">
+            <div class="panel-header">
+                <span class="panel-header-title">
+                    <i class="fas fa-globe text-cyan"></i> Stellarium Remote Control API
+                </span>
+                <button class="btn-tech btn-tech-outline" style="padding: 0.2rem 0.5rem; font-size: 0.7rem;" onclick="AstroLens.testStellariumConnection()">
+                    Test Connection
+                </button>
+            </div>
+            <div class="panel-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div>
+                    <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Stellarium API Host URL</label>
+                    <input type="text" id="setting-stel-url" class="tech-input font-mono" value="http://localhost">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div>
+                        <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">API Port</label>
+                        <input type="number" id="setting-stel-port" class="tech-input font-mono" value="8090">
+                    </div>
+                    <div>
+                        <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Timeout (ms)</label>
+                        <input type="number" id="setting-stel-timeout" class="tech-input font-mono" value="3000">
+                    </div>
+                </div>
+                <div class="telemetry-row">
+                    <span class="label">STATUS DIAGNOSTIC</span>
+                    <span class="val font-mono" id="stellarium-setting-text" style="color: var(--ruby-accent);">OFFLINE</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. TELESCOPE MOUNT DRIVER -->
+        <div class="instrument-panel">
+            <div class="panel-header">
+                <span class="panel-header-title">
+                    <i class="fas fa-satellite-dish text-cyan"></i> Telescope Hardware Mount
+                </span>
+                <span class="subsystem-pill pill-mock">ASCOM / INDI</span>
+            </div>
+            <div class="panel-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div>
+                    <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Mount Driver Protocol</label>
+                    <select id="setting-telescope-driver" class="tech-select font-mono">
+                        <option value="mock" selected>Mock Virtual Slew Mount (Development)</option>
+                        <option value="ascom">ASCOM Alpaca Mount Interface (Physical)</option>
+                        <option value="indi">INDI Library Mount Daemon (Physical)</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div>
+                        <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Max Slew Rate (°/s)</label>
+                        <input type="number" id="setting-slew-rate" class="tech-input font-mono" value="4.0" step="0.5">
+                    </div>
+                    <div>
+                        <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Park Altitude (°)</label>
+                        <input type="number" id="setting-park-alt" class="tech-input font-mono" value="0.0">
+                    </div>
+                </div>
+                <div style="font-size: 0.72rem; color: var(--text-dim); line-height: 1.4;">
+                    Physical telescope movement is only simulated when set to Mock. Certified solar safety interlock active.
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. CAMERA OPTICS SENSOR -->
+        <div class="instrument-panel">
+            <div class="panel-header">
+                <span class="panel-header-title">
+                    <i class="fas fa-camera text-cyan"></i> Camera Sensor & Capture
+                </span>
+                <span class="subsystem-pill pill-connected">HD READY</span>
+            </div>
+            <div class="panel-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div>
+                    <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Default Input Source</label>
+                    <select id="setting-input-source" class="tech-select font-mono">
+                        <option value="demo">Synthetic Astronomical Demo Sky</option>
+                        <option value="webcam" selected>PC Camera / USB Sensor (Webcam)</option>
+                        <option value="image">FITS / Static Image File</option>
+                        <option value="video">Pre-recorded Video Stream</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div>
+                        <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Resolution Profile</label>
+                        <select id="setting-resolution" class="tech-select font-mono">
+                            <option value="1920x1080">1920 × 1080 (Full HD)</option>
+                            <option value="1280x720" selected>1280 × 720 (HD 720p)</option>
+                            <option value="640x480">640 × 480 (VGA 60FPS)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Frame Target FPS</label>
+                        <input type="number" id="setting-fps-target" class="tech-input font-mono" value="30">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. AI VISION ENGINE -->
+        <div class="instrument-panel">
+            <div class="panel-header">
+                <span class="panel-header-title">
+                    <i class="fas fa-microchip text-cyan"></i> AI Detection Model
+                </span>
+                <span class="subsystem-pill pill-connected">YOLOv8n ACTIVE</span>
+            </div>
+            <div class="panel-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div>
+                    <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Weights Model Path</label>
+                    <input type="text" id="setting-ai-path" class="tech-input font-mono" value="api/ml/model/best.pt" readonly>
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                        <span class="label-tech">Confidence Threshold</span>
+                        <span class="font-mono" style="color: var(--cyan-accent); font-weight: 700;" id="threshold-value">50%</span>
+                    </div>
+                    <input type="range" id="setting-threshold" min="10" max="95" value="50" style="width: 100%; accent-color: var(--cyan-accent); cursor: pointer;">
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-dim);">
+                    <span>CLASSES: Planets, Moon, Stars, Deep Sky</span>
+                    <span style="color: var(--emerald-accent); font-family: var(--font-mono);">INFERENCE: 12ms (CUDA)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. MULTI-SIGNAL VERIFICATION WEIGHTS -->
+        <div class="instrument-panel">
+            <div class="panel-header">
+                <span class="panel-header-title">
+                    <i class="fas fa-certificate text-cyan"></i> Astronomical Verification Weights
+                </span>
+                <span class="subsystem-pill pill-connected">TRI-SIGNAL</span>
+            </div>
+            <div class="panel-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.2rem;">
+                        <span class="label-tech">1. Visual AI Weight</span>
+                        <span class="font-mono" style="color: var(--cyan-accent); font-weight: 700;">40%</span>
+                    </div>
+                    <input type="range" id="setting-weight-ai" min="10" max="80" value="40" style="width: 100%; accent-color: var(--cyan-accent);">
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.2rem;">
+                        <span class="label-tech">2. Stellarium Position Weight</span>
+                        <span class="font-mono" style="color: var(--emerald-accent); font-weight: 700;">35%</span>
+                    </div>
+                    <input type="range" id="setting-weight-stel" min="10" max="80" value="35" style="width: 100%; accent-color: var(--emerald-accent);">
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.2rem;">
+                        <span class="label-tech">3. Telescope Mount Pointing Weight</span>
+                        <span class="font-mono" style="color: var(--emerald-accent); font-weight: 700;">25%</span>
+                    </div>
+                    <input type="range" id="setting-weight-mount" min="10" max="80" value="25" style="width: 100%; accent-color: var(--emerald-accent);">
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. SYSTEM & OBSERVER LOCATION -->
+        <div class="instrument-panel">
+            <div class="panel-header">
+                <span class="panel-header-title">
+                    <i class="fas fa-location-dot text-cyan"></i> Observer Spacetime Coordinates
+                </span>
+                <span class="subsystem-pill pill-connected">GPS SYNC</span>
+            </div>
+            <div class="panel-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div>
+                    <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Observatory Site Name</label>
+                    <input type="text" id="setting-location-name" class="tech-input" value="Addis Ababa, Ethiopia">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div>
+                        <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Latitude (°N)</label>
+                        <input type="number" id="setting-latitude" class="tech-input font-mono" value="9.03" step="0.01">
+                    </div>
+                    <div>
+                        <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Longitude (°E)</label>
+                        <input type="number" id="setting-longitude" class="tech-input font-mono" value="38.74" step="0.01">
+                    </div>
+                </div>
+                <div>
+                    <label class="label-tech" style="display: block; margin-bottom: 0.25rem;">Observer Timezone</label>
+                    <input type="text" id="setting-timezone" class="tech-input font-mono" value="Africa/Addis_Ababa">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/settings.js"></script>
+{% endblock %}

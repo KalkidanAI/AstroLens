@@ -1,0 +1,532 @@
+{% extends "base.html" %}
+
+{% block title %}Observation Control Center | AstroLens — AI Observatory{% endblock %}
+{% block page_name %}OBSERVATION CONTROL CENTER{% endblock %}
+
+{% block content %}
+<div class="dashboard-root" style="display: flex; flex-direction: column; gap: 1.25rem;">
+    <!-- MISSION CONTROL HEADER -->
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle);">
+        <div>
+            <h1 class="page-title">
+                <span>Observation Control Center</span>
+                <span class="subsystem-pill pill-mock" id="cockpit-mode-pill" style="font-size: 0.7rem;">MOCK TELEMETRY ACTIVE</span>
+            </h1>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
+                Monitor the celestial sky, telescope mount, live optics camera, and multi-signal AI verification pipeline in real time.
+            </p>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button class="btn-tech btn-tech-outline" id="dash-refresh-btn" onclick="Dashboard.fetchAllData()" title="Refresh Telemetry">
+                <i class="fas fa-rotate"></i> Sync Telemetry
+            </button>
+            <a href="/observatory" class="btn-tech btn-tech-primary">
+                <i class="fas fa-tower-observation"></i> Open Full Observatory
+            </a>
+        </div>
+    </div>
+
+    <!-- PRIMARY MISSION GRID (3-COLUMN: TARGET PANEL, LIVE VIEWPORT, SYSTEM TELEMETRY) -->
+    <div style="display: grid; grid-template-columns: 280px 1fr 310px; gap: 1rem; align-items: start;" class="mission-primary-grid">
+        
+        <!-- LEFT: HERO OBSERVATION TARGET PANEL -->
+        <div class="instrument-panel with-corner-markers" id="hero-target-panel">
+            <div class="panel-header">
+                <span class="panel-header-title">
+                    <i class="fas fa-crosshairs text-cyan"></i> Target Telemetry
+                </span>
+                <span class="subsystem-pill pill-connected" id="target-visibility-pill">VISIBLE</span>
+            </div>
+            <div class="panel-body" style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <div>
+                    <div class="label-tech" style="font-size: 0.65rem;">PRIMARY TARGET</div>
+                    <div style="font-size: 1.6rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;" id="dash-target-name">Jupiter</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted);" id="dash-target-type">Gas Giant • Solar System</div>
+                </div>
+
+                <!-- Ephemeris Specs Grid -->
+                <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                    <div class="telemetry-row">
+                        <span class="label">ALTITUDE</span>
+                        <span class="val val-cyan" id="dash-target-alt">48.12°</span>
+                    </div>
+                    <div class="telemetry-row">
+                        <span class="label">AZIMUTH</span>
+                        <span class="val val-cyan" id="dash-target-az">132.41°</span>
+                    </div>
+                    <div class="telemetry-row">
+                        <span class="label">MAGNITUDE</span>
+                        <span class="val" id="dash-target-mag">-2.31</span>
+                    </div>
+                    <div class="telemetry-row">
+                        <span class="label">DISTANCE</span>
+                        <span class="val" id="dash-target-dist">4.21 AU</span>
+                    </div>
+                    <div class="telemetry-row">
+                        <span class="label">RIGHT ASC</span>
+                        <span class="val" id="dash-target-ra">19h 50m 47s</span>
+                    </div>
+                    <div class="telemetry-row">
+                        <span class="label">DECLINATION</span>
+                        <span class="val" id="dash-target-dec">+08° 52' 06"</span>
+                    </div>
+                </div>
+
+                <!-- Primary Action Controls -->
+                <div style="display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.25rem;">
+                    <button class="btn-tech btn-tech-primary" id="btn-hero-goto" onclick="Dashboard.executeGoto()" style="width: 100%;">
+                        <i class="fas fa-location-arrow"></i> <span id="goto-btn-text">SIMULATED GOTO</span>
+                    </button>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem;">
+                        <button class="btn-tech btn-tech-outline" onclick="AstroLens.focusStellarium('Jupiter')" title="Sync Stellarium Camera View">
+                            <i class="fas fa-globe text-cyan"></i> Stellarium
+                        </button>
+                        <button class="btn-tech btn-tech-outline" onclick="Dashboard.captureSnapshot()" title="Capture High-Res Frame">
+                            <i class="fas fa-camera"></i> Capture
+                        </button>
+                    </div>
+
+                    <button class="btn-tech btn-tech-danger" onclick="Dashboard.emergencyStopMount()" style="width: 100%; margin-top: 0.2rem;">
+                        <i class="fas fa-circle-stop"></i> EMERGENCY STOP
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER: LIVE OBSERVATION VIEWPORT & RETICLE HUD -->
+        <div class="instrument-panel" style="display: flex; flex-direction: column;">
+            <div class="panel-header">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <span class="panel-header-title">
+                        <i class="fas fa-video text-cyan"></i> Live Observation Viewport
+                    </span>
+                    <span class="subsystem-pill pill-connected" style="font-size: 0.65rem;" id="viewport-live-badge">
+                        ● LIVE STREAM
+                    </span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                    <button class="btn-tech btn-tech-outline" id="btn-live-ai-toggle" onclick="Dashboard.toggleLiveAI()" style="padding: 0.2rem 0.55rem; font-size: 0.7rem;" title="Toggle Real-Time AI Inference Loop">
+                        <i class="fas fa-microchip text-cyan"></i> AI Tracking: <strong id="live-ai-status-text" style="color: var(--emerald-accent);">AUTO</strong>
+                    </button>
+                    <button class="btn-tech btn-tech-outline" style="padding: 0.25rem 0.5rem; font-size: 0.72rem;" onclick="Dashboard.togglePauseFeed()" id="viewport-pause-btn" title="Pause Stream">
+                        <i class="fas fa-pause"></i>
+                    </button>
+                    <button class="btn-tech btn-tech-outline" style="padding: 0.25rem 0.5rem; font-size: 0.72rem;" onclick="Dashboard.toggleFullscreen()" title="Fullscreen Viewport">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel-body" style="padding: 0; background: #020407; position: relative;">
+                <!-- VIEWPORT CONTAINER WITH OPTICAL RETICLE -->
+                <div class="viewport-container" id="dash-viewport-container" style="border: none; border-radius: 0;">
+                    <canvas id="dash-camera-canvas" width="1280" height="720" class="viewport-canvas"></canvas>
+                    
+                    <!-- OPTICAL HUD OVERLAY -->
+                    <div class="hud-reticle-layer">
+                        <!-- Top HUD Bar -->
+                        <div class="hud-top-bar">
+                            <div class="hud-rec-badge">
+                                <span class="hud-rec-dot"></span> REC
+                            </div>
+                            <div class="hud-spec-pills">
+                                <span class="hud-spec-pill" id="dash-hud-utc">UTC --:--:--</span>
+                                <span class="hud-spec-pill" id="dash-hud-res">1280 × 720</span>
+                                <span class="hud-spec-pill" id="dash-hud-fps">29.8 FPS</span>
+                            </div>
+                        </div>
+
+                        <!-- Center Crosshair & Reticle Ring -->
+                        <div class="hud-center-crosshair">
+                            <div class="hud-reticle-ring"></div>
+                        </div>
+
+                        <!-- Simulated Bounding Box for Jupiter Detection -->
+                        <div class="hud-target-bracket" style="top: 32%; left: 26%; width: 105px; height: 105px;" id="dash-live-bbox">
+                            <div class="hud-bracket-label">JUPITER 94.2%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Viewport Bottom Controls & Metadata Bar -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.85rem; background: var(--bg-space-dark); border-top: 1px solid var(--border-panel); font-family: var(--font-mono); font-size: 0.72rem;">
+                    <span style="color: var(--text-dim);">SENSOR: <strong style="color: var(--text-secondary);">CMOS IMX462 (0.45 arcsec/px)</strong></span>
+                    <span style="color: var(--text-dim);">EXPOSURE: <strong style="color: var(--text-secondary);">45ms • GAIN 180</strong></span>
+                    <span style="color: var(--cyan-accent); font-weight: 600;">TRACKING: SIDEREAL LOCK</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: SYSTEM TELEMETRY & STELLARIUM INTEGRATION -->
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <!-- MOUNT TELEMETRY PANEL -->
+            <div class="instrument-panel">
+                <div class="panel-header">
+                    <span class="panel-header-title">
+                        <i class="fas fa-satellite-dish text-cyan"></i> Mount Telemetry
+                    </span>
+                    <span class="subsystem-pill pill-mock" id="dash-mount-mode-pill">MOCK</span>
+                </div>
+                <div class="panel-body" style="display: flex; flex-direction: column; gap: 0.35rem;">
+                    <div class="telemetry-row">
+                        <span class="label">MOUNT STATE</span>
+                        <span class="val val-emerald" id="dash-tel-status">CONNECTED (MOCK)</span>
+                    </div>
+                    <div class="telemetry-row">
+                        <span class="label">ALTITUDE</span>
+                        <span class="val" id="dash-tel-alt">48.1°</span>
+                    </div>
+                    <div class="telemetry-row">
+                        <span class="label">AZIMUTH</span>
+                        <span class="val" id="dash-tel-az">72.4°</span>
+                    </div>
+                    <div class="telemetry-row">
+                        <span class="label">SLEW RATE</span>
+                        <span class="val">4.0° / SEC</span>
+                    </div>
+                    <div class="telemetry-row">
+                        <span class="label">PARK STATUS</span>
+                        <span class="val">UNPARKED</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STELLARIUM API SYNC PANEL -->
+            <div class="instrument-panel">
+                <div class="panel-header">
+                    <span class="panel-header-title">
+                        <i class="fas fa-globe text-cyan"></i> Stellarium Sync
+                    </span>
+                    <button class="btn-tech btn-tech-outline" style="padding: 0.2rem 0.45rem; font-size: 0.68rem;" onclick="AstroLens.testStellariumConnection()">
+                        Test
+                    </button>
+                </div>
+                <div class="panel-body" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div class="telemetry-row">
+                        <span class="label">ENDPOINT</span>
+                        <span class="val font-mono" style="font-size: 0.72rem;">127.0.0.1:8090</span>
+                    </div>
+                    <div class="telemetry-row">
+                        <span class="label">SELECTED</span>
+                        <span class="val val-cyan" id="dash-stel-selected">Jupiter</span>
+                    </div>
+
+                    <!-- Quick Stellarium Search Input -->
+                    <div style="display: flex; gap: 0.35rem; margin-top: 0.2rem;">
+                        <input type="text" id="dash-stel-search-input" class="tech-input" placeholder="Search target in Stellarium..." style="font-size: 0.75rem; padding: 0.35rem 0.55rem;">
+                        <button class="btn-tech btn-tech-outline" onclick="AstroLens.searchStellarium(document.getElementById('dash-stel-search-input').value)" style="padding: 0.35rem 0.6rem;">
+                            <i class="fas fa-magnifying-glass"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECONDARY GRID: AI DETECTION & ASTRONOMICAL VERIFICATION -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;" class="mission-secondary-grid">
+        
+        <!-- AI DETECTION PANEL -->
+        <div class="instrument-panel">
+            <div class="panel-header">
+                <div style="display: flex; align-items: center; gap: 0.55rem;">
+                    <span class="panel-header-title">
+                        <i class="fas fa-microchip text-cyan"></i> AI Detection Telemetry
+                    </span>
+                    <span class="subsystem-pill pill-connected" id="dash-ai-model-pill">YOLOv8n ACTIVE</span>
+                </div>
+                <button class="btn-tech btn-tech-primary" style="padding: 0.25rem 0.6rem; font-size: 0.72rem;" onclick="Dashboard.runDetection()">
+                    <i class="fas fa-bolt"></i> Analyze Frame
+                </button>
+            </div>
+            <div class="panel-body" style="padding: 0;">
+                <table class="tech-table">
+                    <thead>
+                        <tr>
+                            <th>Object</th>
+                            <th>Confidence</th>
+                            <th>Bounding Box</th>
+                            <th>Classification</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dash-detections-tbody">
+                        <tr>
+                            <td><strong style="color: #ffffff;">Jupiter</strong></td>
+                            <td><span style="color: var(--cyan-accent); font-family: var(--font-mono); font-weight: 700;">94.2%</span></td>
+                            <td class="font-mono text-dim" style="font-size: 0.72rem;">[340, 210, 480, 350]</td>
+                            <td><span class="subsystem-pill pill-connected" style="font-size: 0.65rem;">Gas Giant</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: #ffffff;">Callisto (Moon)</strong></td>
+                            <td><span style="color: var(--cyan-accent); font-family: var(--font-mono); font-weight: 700;">88.1%</span></td>
+                            <td class="font-mono text-dim" style="font-size: 0.72rem;">[290, 240, 310, 260]</td>
+                            <td><span class="subsystem-pill pill-mock" style="font-size: 0.65rem;">Satellite</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: #ffffff;">Ganymede (Moon)</strong></td>
+                            <td><span style="color: var(--cyan-accent); font-family: var(--font-mono); font-weight: 700;">82.4%</span></td>
+                            <td class="font-mono text-dim" style="font-size: 0.72rem;">[520, 275, 540, 295]</td>
+                            <td><span class="subsystem-pill pill-mock" style="font-size: 0.65rem;">Satellite</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ASTRONOMICAL VERIFICATION COCKPIT (CORE DIFFERENTIATOR) -->
+        <div class="verification-cockpit">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.45rem;">
+                    <i class="fas fa-certificate" style="color: var(--cyan-accent); font-size: 0.95rem;"></i>
+                    <span style="font-size: 0.85rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #ffffff;">
+                        Astronomical Multi-Signal Verification
+                    </span>
+                </div>
+                <span class="subsystem-pill pill-connected" style="font-size: 0.68rem;">PIPELINE ACTIVE</span>
+            </div>
+
+            <!-- 3 Evidence Sources Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.65rem;">
+                <div class="evidence-source-card">
+                    <span class="source-name">1. Visual AI</span>
+                    <span class="source-val" style="color: var(--cyan-accent);" id="ver-visual-ai">94.2%</span>
+                    <span style="font-size: 0.65rem; color: var(--text-dim);">YOLO Vision Model</span>
+                </div>
+
+                <div class="evidence-source-card">
+                    <span class="source-name">2. Ephemeris Match</span>
+                    <span class="source-val" style="color: var(--emerald-accent);" id="ver-ephemeris-match">MATCH ✓</span>
+                    <span style="font-size: 0.65rem; color: var(--text-dim);">Stellarium Catalog</span>
+                </div>
+
+                <div class="evidence-source-card">
+                    <span class="source-name">3. Mount Pointing</span>
+                    <span class="source-val" style="color: var(--emerald-accent);" id="ver-mount-match">MATCH ✓</span>
+                    <span style="font-size: 0.65rem; color: var(--text-dim);">Telescope Alt/Az</span>
+                </div>
+            </div>
+
+            <!-- Score & Verdict Display -->
+            <div style="display: grid; grid-template-columns: 150px 1fr; gap: 0.85rem; margin-top: 0.75rem; align-items: center;">
+                <div class="score-display-box">
+                    <div class="score-percentage" id="ver-score-num">92%</div>
+                    <div class="score-verdict" id="ver-verdict-text">VERIFIED ✓</div>
+                </div>
+
+                <div class="verification-reason-box" id="ver-reason-text">
+                    "Visual detection is consistent with expected astronomical position, Stellarium ephemeris coordinates, and telescope mount pointing."
+                </div>
+            </div>
+
+            <div style="font-size: 0.68rem; color: var(--text-dim); margin-top: 0.6rem; line-height: 1.4;">
+                <strong style="color: var(--text-muted);">Scientific Principle:</strong> AI detection ≠ final identification. AstroLens cross-references real-time computer vision with ephemeris physics, telescope telemetry, and observer spacetime coordinates.
+            </div>
+        </div>
+    </div>
+
+    <!-- LOWER TIER: 3D CELESTIAL ORBIT & ACTIVE OBSERVATION LOG -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;" class="mission-lower-grid">
+        
+        <!-- 3D CELESTIAL ORBITAL GRAPH (THREE.JS) -->
+        <div class="instrument-panel">
+            <div class="panel-header">
+                <span class="panel-header-title">
+                    <i class="fas fa-globe text-cyan"></i> 3D Celestial Orbital Graph
+                </span>
+                <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-dim);">
+                    DRAG TO ROTATE • SCROLL TO ZOOM
+                </span>
+            </div>
+            <div class="panel-body" style="padding: 0; background: #020407; position: relative;">
+                <div id="threejs-container" style="width: 100%; height: 260px; cursor: grab;">
+                    <canvas id="threejs-canvas" style="width: 100%; height: 100%; display: block;"></canvas>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35rem; padding: 0.5rem 0.75rem; background: var(--bg-space-dark); border-top: 1px solid var(--border-panel); font-family: var(--font-mono); font-size: 0.7rem;">
+                    <div><span style="color: var(--text-dim);">LOCK:</span> <strong style="color: var(--cyan-accent);">JUPITER</strong></div>
+                    <div><span style="color: var(--text-dim);">RA:</span> <strong>19h 50m</strong></div>
+                    <div><span style="color: var(--text-dim);">DEC:</span> <strong>+08° 52'</strong></div>
+                    <div><span style="color: var(--text-dim);">GPU:</span> <strong style="color: var(--emerald-accent);">60 FPS</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- OBSERVATION HISTORY LOG -->
+        <div class="instrument-panel">
+            <div class="panel-header">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="panel-header-title">
+                        <i class="fas fa-table-list text-cyan"></i> Active Observation Telemetry Log
+                    </span>
+                    <span class="subsystem-pill pill-connected" style="font-size: 0.65rem;">LIVE LOG</span>
+                </div>
+                <a href="/history" class="btn-tech btn-tech-outline" style="padding: 0.2rem 0.5rem; font-size: 0.7rem;">
+                    View All Logs
+                </a>
+            </div>
+            <div class="panel-body" style="padding: 0; max-height: 300px; overflow-y: auto;">
+                <table class="tech-table">
+                    <thead>
+                        <tr>
+                            <th>Time (UTC)</th>
+                            <th>Object</th>
+                            <th>AI Conf</th>
+                            <th>Ephemeris</th>
+                            <th>Score</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-observations-table">
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 2rem;">Loading telemetry log...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- REAL-TIME MISSION TELEMETRY TERMINAL STREAM -->
+    <div class="instrument-panel with-corner-markers" style="background: #030508;">
+        <div class="panel-header" style="background: rgba(8, 13, 23, 0.8);">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-terminal text-cyan" style="font-size: 0.85rem;"></i>
+                <span class="panel-header-title" style="color: #ffffff;">Real-Time Mission Telemetry Stream</span>
+                <span class="subsystem-pill pill-connected" style="font-size: 0.65rem;">LIVE BUS CONNECTED</span>
+            </div>
+            <div style="display: flex; gap: 0.4rem;">
+                <button class="btn-tech btn-tech-outline" style="padding: 0.15rem 0.45rem; font-size: 0.68rem;" onclick="Dashboard.clearLogTerminal()">Clear Log</button>
+            </div>
+        </div>
+        <div id="dashboard-terminal-stream" style="padding: 0.75rem 1rem; font-family: var(--font-mono); font-size: 0.72rem; line-height: 1.6; max-height: 140px; overflow-y: auto; color: var(--text-secondary); background: #020407;">
+            <div><span style="color: var(--text-dim);">[00:00:00]</span> <span style="color: var(--cyan-accent);">INIT</span> AstroLens real-time telemetry bus connected (SSE stream active)</div>
+            <div><span style="color: var(--text-dim);">[00:00:01]</span> <span style="color: var(--emerald-accent);">SYNC</span> Mount status synchronized: Sidereal tracking locked</div>
+        </div>
+    </div>
+</div>
+
+<!-- OBSERVATION DETAIL DRAWER -->
+<div id="observation-detail-drawer" class="tech-drawer">
+    <div class="drawer-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-file-waveform text-cyan"></i>
+            <span class="panel-header-title" id="drawer-title">Observation Details</span>
+        </div>
+        <button class="btn-tech btn-tech-outline" onclick="Dashboard.closeDrawer()" style="padding: 0.25rem 0.5rem;">
+            <i class="fas fa-xmark"></i>
+        </button>
+    </div>
+    <div class="drawer-body" id="drawer-body-content">
+        <!-- Injected via JavaScript -->
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/dashboard.js"></script>
+<script>
+    // Initialize Three.js 3D Celestial Orbit
+    (function initThreeJSCelestialGraph() {
+        var container = document.getElementById('threejs-container');
+        var canvas = document.getElementById('threejs-canvas');
+        if (!container || !canvas || typeof THREE === 'undefined') return;
+
+        var width = container.clientWidth;
+        var height = container.clientHeight || 260;
+
+        var scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x060911, 0.015);
+
+        var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        camera.position.set(0, 6, 22);
+
+        var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Starfield
+        var starsGeometry = new THREE.BufferGeometry();
+        var starsCount = 1000;
+        var starPositions = new Float32Array(starsCount * 3);
+        for (var i = 0; i < starsCount * 3; i++) {
+            starPositions[i] = (Math.random() - 0.5) * 120;
+        }
+        starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        var starsMaterial = new THREE.PointsMaterial({ color: 0x94a3b8, size: 0.5, transparent: true, opacity: 0.7 });
+        var starfield = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(starfield);
+
+        // Celestial Globe Wireframe
+        var sphereGeo = new THREE.SphereGeometry(4.5, 20, 20);
+        var sphereMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true, transparent: true, opacity: 0.18 });
+        var celestialGlobe = new THREE.Mesh(sphereGeo, sphereMat);
+        scene.add(celestialGlobe);
+
+        // Equatorial Ring
+        var ringGeo = new THREE.RingGeometry(6.5, 6.6, 64);
+        var ringMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide, transparent: true, opacity: 0.35 });
+        var ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = Math.PI / 2.3;
+        scene.add(ring);
+
+        // Targets: Jupiter, Saturn, Mars
+        var targetObjects = [];
+        var targets = [
+            { name: 'JUPITER', color: 0x38bdf8, radius: 7.5, speed: 0.007, angle: 0 },
+            { name: 'SATURN', color: 0x10b981, radius: 10.5, speed: 0.004, angle: 2 },
+            { name: 'MARS', color: 0xf59e0b, radius: 12.5, speed: 0.003, angle: 4 }
+        ];
+
+        targets.forEach(function(t) {
+            var meshGeo = new THREE.SphereGeometry(0.45, 16, 16);
+            var meshMat = new THREE.MeshBasicMaterial({ color: t.color });
+            var mesh = new THREE.Mesh(meshGeo, meshMat);
+            scene.add(mesh);
+            targetObjects.push({ mesh: mesh, data: t });
+        });
+
+        // Mouse Drag Orbit
+        var isDragging = false;
+        var previousMousePosition = { x: 0, y: 0 };
+
+        container.addEventListener('mousedown', function(e) { isDragging = true; previousMousePosition = { x: e.clientX, y: e.clientY }; });
+        window.addEventListener('mouseup', function() { isDragging = false; });
+        container.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            var deltaX = e.clientX - previousMousePosition.x;
+            var deltaY = e.clientY - previousMousePosition.y;
+
+            celestialGlobe.rotation.y += deltaX * 0.005;
+            celestialGlobe.rotation.x += deltaY * 0.005;
+            starfield.rotation.y += deltaX * 0.002;
+
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            celestialGlobe.rotation.y += 0.0018;
+            starfield.rotation.y += 0.0004;
+
+            targetObjects.forEach(function(obj) {
+                obj.data.angle += obj.data.speed;
+                obj.mesh.position.x = Math.cos(obj.data.angle) * obj.data.radius;
+                obj.mesh.position.z = Math.sin(obj.data.angle) * obj.data.radius;
+                obj.mesh.position.y = Math.sin(obj.data.angle * 2) * 1.2;
+            });
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', function() {
+            if (!container) return;
+            width = container.clientWidth;
+            height = container.clientHeight || 260;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        });
+    })();
+</script>
+{% endblock %}

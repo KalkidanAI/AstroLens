@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AstroLens — AI-Powered Intelligent Astronomical Observation Platform</title>
+    <meta name="description" content="AstroLens: From Telescope Data to Verified Discovery. Bridging optics telemetry, YOLOv8 computer vision, and Stellarium ephemeris into an intelligent shared observatory.">
+    <meta name="theme-color" content="#060911">
+    
+    <!-- Google Fonts: Technical Sans & Telemetry Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="landing">
+    <div id="toast-container"></div>
+
+    <!-- SITE HEADER -->
+    <header class="site-header" id="site-header">
+        <nav class="nav-wrap" aria-label="Primary">
+            <a href="/" class="brand" aria-label="AstroLens home">
+                <div class="brand-emblem" style="width: 28px; height: 28px; font-size: 0.75rem;">AL</div>
+                <span class="brand-name">ASTRO<span>LENS</span></span>
+            </a>
+
+            <div class="nav-auth-actions" id="landing-auth-nav" style="display: flex; gap: 0.5rem; align-items: center;">
+                <a href="/login" class="btn-tech btn-tech-outline"><i class="fas fa-right-to-bracket"></i> Sign In</a>
+                <a href="/signup" class="btn-tech btn-tech-primary"><i class="fas fa-user-plus"></i> Get Started</a>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        <!-- HERO SECTION -->
+        <section class="hero" id="top" style="min-height: 85vh; display: flex; align-items: center;">
+            <div class="container hero-grid">
+                <div class="reveal">
+                    <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.75rem; background: var(--cyan-subtle); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; color: var(--cyan-accent); margin-bottom: 1rem; text-transform: uppercase;">
+                        <span class="observation-pulse-dot"></span> From Telescope Data to Verified Discovery
+                    </div>
+                    
+                    <h1 class="hero-heading" style="font-size: 2.8rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.03em; color: #ffffff; margin-bottom: 1.25rem;">
+                        Turning telescope optics into a <span class="sky-text">verified AI observatory.</span>
+                    </h1>
+                    
+                    <p class="hero-lead" style="font-size: 1.05rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem; max-width: 580px;">
+                        AstroLens fuses Python Flask, YOLOv8 computer vision, and Stellarium ephemeris physics—allowing astronomers to monitor live camera streams, detect celestial bodies, and mathematically verify discoveries in real time.
+                    </p>
+                    
+                    <div class="hero-actions" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <a href="/dashboard" class="btn-tech btn-tech-primary" style="padding: 0.75rem 1.4rem; font-size: 0.85rem;">
+                            <i class="fas fa-layer-group"></i> Enter Mission Control
+                        </a>
+                        <a href="/observatory" class="btn-tech btn-tech-outline" style="padding: 0.75rem 1.4rem; font-size: 0.85rem;">
+                            <i class="fas fa-tower-observation text-cyan"></i> Launch Observatory
+                        </a>
+                    </div>
+                </div>
+
+                <div class="showcase reveal" style="transition-delay: 160ms;">
+                    <div class="instrument-panel with-corner-markers" style="box-shadow: 0 10px 40px rgba(0,0,0,0.8); border-color: rgba(56, 189, 248, 0.3);">
+                        <div class="panel-header" style="justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span class="hud-rec-dot"></span>
+                                <span class="font-mono" style="font-size: 0.75rem; font-weight: 700; color: #ffffff;">HUD // LIVE OBSERVATION</span>
+                            </div>
+                            <span class="subsystem-pill pill-connected" style="font-size: 0.65rem;">STELLARIUM SYNC</span>
+                        </div>
+                        
+                        <div class="panel-body" style="padding: 0; background: #020407;">
+                            <!-- Top Telemetry HUD Viewport -->
+                            <div class="hud-viewport" style="aspect-ratio: 16/10; position: relative;">
+                                <div class="hud-center-crosshair">
+                                    <div class="hud-reticle-ring"></div>
+                                </div>
+                                <div class="hud-target-box" style="position: absolute; top: 28%; left: 32%; width: 140px; height: 110px; border: 1.5px solid var(--cyan-accent); background: rgba(56, 189, 248, 0.08);">
+                                    <div class="hud-bracket-label">SATURN • 98.4% CONF</div>
+                                </div>
+                                <div class="hud-metrics" style="position: absolute; bottom: 10px; left: 12px; right: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; background: rgba(3,5,8,0.85); backdrop-filter: blur(8px); padding: 0.35rem 0.6rem; border: 1px solid var(--border-panel); border-radius: var(--radius-xs); font-family: var(--font-mono); font-size: 0.7rem;">
+                                    <div><span style="color: var(--text-dim);">RA:</span> <strong>19h 50m</strong></div>
+                                    <div><span style="color: var(--text-dim);">DEC:</span> <strong>+08° 52'</strong></div>
+                                    <div><span style="color: var(--text-dim);">ALT:</span> <strong>52.4°</strong></div>
+                                    <div><span style="color: var(--text-dim);">LOCK:</span> <strong style="color: var(--emerald-accent);">MATCH ✓</strong></div>
+                                </div>
+                            </div>
+
+                            <!-- Bottom Terminal Log Stream -->
+                            <div style="padding: 0.75rem 1rem; background: var(--bg-space-dark); border-top: 1px solid var(--border-panel); font-family: var(--font-mono); font-size: 0.72rem; line-height: 1.6;">
+                                <div><span style="color: var(--text-dim);">[00:00:01]</span> <span style="color: var(--cyan-accent);">INFO</span> Flask API bridge connected to Stellarium (127.0.0.1:8090)</div>
+                                <div><span style="color: var(--text-dim);">[00:00:02]</span> <span style="color: var(--emerald-accent);">SYNC</span> Mount tracking target: SATURN (RA 19h 50m 47s)</div>
+                                <div><span style="color: var(--text-dim);">[00:00:03]</span> <span style="color: var(--cyan-accent);">YOLO</span> Computer vision model weights loaded: yolov8_astro.pt</div>
+                                <div><span style="color: var(--text-dim);">[00:00:04]</span> <span style="color: var(--emerald-accent);">LOCK</span> Multi-signal verified: Saturn (Score: 98.4%) | 12ms</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer style="padding: 1.5rem 2rem; border-top: 1px solid var(--border-panel); background: var(--bg-space-dark);">
+        <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-dim);">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <strong style="color: #ffffff;">ASTRO<span style="color: var(--cyan-accent);">LENS</span></strong>
+                <span>&copy; 2026 AI-Powered Astronomical Platform</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.45rem;">
+                <span class="observation-pulse-dot"></span>
+                <span style="color: var(--emerald-accent); font-family: var(--font-mono);">SYSTEM OPERATIONAL // ALL SIGNALS VERIFIED</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+      (function () {
+        var user = AstroLens.getUser();
+        var navAuth = document.getElementById('landing-auth-nav');
+        if (user && navAuth) {
+            navAuth.innerHTML = `
+                <span style="font-weight:600; font-size:0.8rem; color:#ffffff; font-family:var(--font-mono);">${user.username}</span>
+                <a href="/dashboard" class="btn-tech btn-tech-primary"><i class="fas fa-layer-group"></i> Mission Control</a>
+                <button onclick="AstroLens.logout()" class="btn-tech btn-tech-outline"><i class="fas fa-arrow-right-from-bracket"></i></button>
+            `;
+        }
+      })();
+    </script>
+</body>
+</html>
