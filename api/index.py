@@ -81,14 +81,39 @@ CORS(app)
 # Vercel WSGI / Serverless handler
 handler = app
 
-# Initialize services
-detector = AstronomyDetector()
-astronomy_service = AstronomyService()
-telescope_service = TelescopeService()
-camera_service = CameraService()
-verification_service = VerificationService()
-stellarium_service = StellariumService()
-auth_service = AuthService()
+# Initialize services with safe error capture for resilient deployment
+init_error = None
+try:
+    detector = AstronomyDetector()
+    astronomy_service = AstronomyService()
+    telescope_service = TelescopeService()
+    camera_service = CameraService()
+    verification_service = VerificationService()
+    stellarium_service = StellariumService()
+    auth_service = AuthService()
+except Exception as e:
+    import traceback
+    init_error = traceback.format_exc()
+    logger.error(f"Service initialization error: {init_error}")
+
+@app.before_request
+def check_init_error():
+    if init_error is not None and request.path not in ['/api/health', '/health']:
+        return jsonify({
+            "status": "error",
+            "message": "AstroLens Service Initialization Error",
+            "traceback": init_error
+        }), 500
+
+@app.route('/api/health', methods=['GET'])
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({
+        "status": "ok",
+        "initialized": init_error is None,
+        "template_folder": app.template_folder,
+        "static_folder": app.static_folder
+    })
 
 @app.after_request
 def add_cors_and_csp_headers(response):

@@ -1,30 +1,17 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python",
-      "config": {
-        "includeFiles": [
-          "templates/**",
-          "api/data/**",
-          "api/ml/model/**"
-        ]
-      }
-    },
-    {
-      "src": "static/**",
-      "use": "@vercel/static"
+  "functions": {
+    "api/index.py": {
+      "includeFiles": "templates/**,api/data/**"
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
+      "source": "/static/(.*)",
+      "destination": "/static/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/api/index.py"
+      "source": "/(.*)",
+      "destination": "/api/index.py"
     }
   ]
 }
